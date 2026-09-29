@@ -119,3 +119,12 @@ Ephemeral workers managed by a stable routing plane.
   the live set; reroutes automatically on 5xx or transport errors.
 - **S3 Registry:** Workers publish 15s TTL heartbeats to S3. Stale nodes are
   silently dropped from rotation without complex consensus protocols.
+
+### Experimental C++ KV transfer
+
+[`kv-transfer-engine/`](./kv-transfer-engine/README.md) adds a standalone TCP
+engine for layerwise prefill-to-decode KV transfer, with block remapping,
+bounded queues, acknowledgements, CUDA staging, and Python bindings. Its CPU
+transport and lifetime tests run independently of the existing serving stack.
+The vLLM connector is experimental; GPU round-trip validation, exact-token
+parity, and serving performance measurements remain acceptance gates.

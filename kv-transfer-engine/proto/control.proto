@@ -1,0 +1,17 @@
+syntax = "proto3";
+package kvtransfer.wire;
+
+message Layout {
+  string model_revision = 1;
+  uint32 layers = 2;
+  uint32 kv_heads = 3;
+  uint32 head_dim = 4;
+  uint32 block_tokens = 5;
+  uint32 element_bytes = 6;
+  string dtype = 7;
+  // Wire order: logical block, K then V, token, head, dimension.
+  string ordering = 8;
+}
+message Handshake { Layout layout = 1; }
+message Announce { repeated uint32 destination_blocks = 1; }
+message Failure { string reason = 1; }

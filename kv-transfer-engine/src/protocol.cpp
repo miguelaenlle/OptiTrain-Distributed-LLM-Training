@@ -45,8 +45,9 @@ std::array<std::byte, kHeaderBytes> encode_header(const Frame& f) {
 }
 Bytes encode(const Frame& f) {
   auto h = encode_header(f);
-  Bytes out(h.begin(), h.end());
-  out.insert(out.end(), f.payload.begin(), f.payload.end());
+  Bytes out(kHeaderBytes + f.payload.size());
+  std::copy(h.begin(), h.end(), out.begin());
+  std::copy(f.payload.begin(), f.payload.end(), out.begin() + kHeaderBytes);
   return out;
 }
 void Parser::feed(std::span<const std::byte> input, const std::function<void(Frame)>& emit) {

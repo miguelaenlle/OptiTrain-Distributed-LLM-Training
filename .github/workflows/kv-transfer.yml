@@ -1,0 +1,35 @@
+name: KV transfer correctness
+on:
+  push:
+    paths: ['kv-transfer-engine/**', '.github/workflows/kv-transfer.yml']
+  pull_request:
+    paths: ['kv-transfer-engine/**', '.github/workflows/kv-transfer.yml']
+permissions:
+  contents: read
+defaults:
+  run:
+    working-directory: kv-transfer-engine
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        sanitizer: ["", address, thread]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t kv-build .
+      - run: >-
+          docker run --rm --security-opt seccomp=unconfined -v "$PWD:/src" kv-build sh -c
+          'cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DKVT_SANITIZER=${{ matrix.sanitizer }} &&
+          cmake --build build -j 2 && ctest --test-dir build --output-on-failure --timeout 60'
+  integration:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t kv-build .
+      - run: >-
+          docker run --rm --cap-add NET_ADMIN -v "$PWD:/src" kv-build sh -c
+          'cmake -S . -B build -G Ninja -DKVT_PYTHON=ON -DCMAKE_BUILD_TYPE=Release &&
+          cmake --build build -j 2 && ctest --test-dir build --output-on-failure &&
+          PYTHONPATH=build:python python3 -m pytest tests/test_native.py tests/test_planning.py &&
+          python3 tools/test_loopback.py --netem'

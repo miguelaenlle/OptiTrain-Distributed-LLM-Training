@@ -1,0 +1,126 @@
+diff --git a/common/event-queue/EventList.cpp b/common/event-queue/EventList.cpp
+index a1c09ec..547ff29 100644
+--- a/common/event-queue/EventList.cpp
++++ b/common/event-queue/EventList.cpp
+@@ -12,24 +12,35 @@ EventList::EventList(const EventTime event_time) noexcept : event_time(event_tim
+     assert(event_time >= 0);
+ 
+     // create an empty event list
+-    events = std::list<Event>();
++    events = std::list<std::pair<int, Event>>();
+ }
+ 
+ EventTime EventList::get_event_time() const noexcept {
+     return event_time;
+ }
+ 
+-void EventList::add_event(const Callback callback, const CallbackArg callback_arg) noexcept {
++void EventList::add_event(const Callback callback, const CallbackArg callback_arg, int phase) noexcept {
+     assert(callback != nullptr);
+ 
+     // add the event to the event list
+-    events.emplace_back(callback, callback_arg);
++    auto pos = events.begin();
++    while (pos != events.end() && pos->first <= phase) ++pos;
++    events.emplace(pos, phase, Event(callback, callback_arg));
+ }
+ 
+ void EventList::invoke_events() noexcept {
+     // invoke all events in the event list
+     while (!events.empty()) {
+-        events.front().invoke_event();
++        // Pop before invoking: cancellation may remove other entries at this tick.
++        auto event = events.front().second;
+         events.pop_front();
++        event.invoke_event();
++    }
++}
++
++void EventList::cancel_if(const std::function<bool(Callback, CallbackArg)>& predicate) {
++    for (auto it = events.begin(); it != events.end();) {
++        auto [callback, arg] = it->second.get_handler_arg();
++        if (predicate(callback, arg)) it = events.erase(it); else ++it;
+     }
+ }
+diff --git a/common/event-queue/EventQueue.cpp b/common/event-queue/EventQueue.cpp
+index 2b335aa..42928fb 100644
+--- a/common/event-queue/EventQueue.cpp
++++ b/common/event-queue/EventQueue.cpp
+@@ -5,6 +5,7 @@ LICENSE file in the root directory of this source tree.
+ 
+ #include "common/EventQueue.h"
+ #include <cassert>
++#include <limits>
+ 
+ using namespace NetworkAnalytical;
+ 
+@@ -46,7 +47,7 @@ void EventQueue::proceed() noexcept {
+ 
+ void EventQueue::schedule_event(const EventTime event_time,
+                                 const Callback callback,
+-                                const CallbackArg callback_arg) noexcept {
++                                const CallbackArg callback_arg, int phase) noexcept {
+     // time should be at least larger than current time
+     assert(event_time >= current_time);
+ 
+@@ -71,5 +72,12 @@ void EventQueue::schedule_event(const EventTime event_time,
+ 
+     // now, whether (1) or (2), the entry to insert the event is found
+     // add event to event_list
+-    event_list_it->add_event(callback, callback_arg);
++    event_list_it->add_event(callback, callback_arg, phase);
++}
++
++void EventQueue::cancel_if(const std::function<bool(Callback, CallbackArg)>& predicate) {
++    for (auto& events : event_queue) events.cancel_if(predicate);
++}
++EventTime EventQueue::next_time() const noexcept {
++    return event_queue.empty() ? std::numeric_limits<EventTime>::max() : event_queue.front().get_event_time();
+ }
+diff --git a/include/astra-network-analytical/common/EventList.h b/include/astra-network-analytical/common/EventList.h
+index c463801..3702eed 100644
+--- a/include/astra-network-analytical/common/EventList.h
++++ b/include/astra-network-analytical/common/EventList.h
+@@ -8,6 +8,7 @@ LICENSE file in the root directory of this source tree.
+ #include "common/Event.h"
+ #include "common/Type.h"
+ #include <list>
++#include <functional>
+ 
+ namespace NetworkAnalytical {
+ 
+@@ -36,7 +37,9 @@ class EventList {
+      * @param callback callback function pointer
+      * @param callback_arg argument of the callback function
+      */
+-    void add_event(Callback callback, CallbackArg callback_arg) noexcept;
++    void add_event(Callback callback, CallbackArg callback_arg, int phase = 1) noexcept;
++    void cancel_if(const std::function<bool(Callback, CallbackArg)>& predicate);
++    bool empty() const noexcept { return events.empty(); }
+ 
+     /**
+      * Invoke all events in the event list.
+@@ -48,7 +51,7 @@ class EventList {
+     EventTime event_time;
+ 
+     /// list of registered events
+-    std::list<Event> events;
++    std::list<std::pair<int, Event>> events;
+ };
+ 
+ }  // namespace NetworkAnalytical
+diff --git a/include/astra-network-analytical/common/EventQueue.h b/include/astra-network-analytical/common/EventQueue.h
+index 968d29f..352d816 100644
+--- a/include/astra-network-analytical/common/EventQueue.h
++++ b/include/astra-network-analytical/common/EventQueue.h
+@@ -57,7 +57,9 @@ class EventQueue {
+      * @param callback callback function pointer
+      * @param callback_arg argument of the callback function
+      */
+-    void schedule_event(EventTime event_time, Callback callback, CallbackArg callback_arg) noexcept;
++    void schedule_event(EventTime event_time, Callback callback, CallbackArg callback_arg, int phase = 1) noexcept;
++    void cancel_if(const std::function<bool(Callback, CallbackArg)>& predicate);
++    EventTime next_time() const noexcept;
+ 
+   private:
+     /// current time of the event queue

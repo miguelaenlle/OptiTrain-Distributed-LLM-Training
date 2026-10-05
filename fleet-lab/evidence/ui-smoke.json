@@ -1,0 +1,85 @@
+{
+  "edited_run": {
+    "id": "dfa292a5-121d-4ece-91a3-93e91c192c3f",
+    "status": "canceled",
+    "seed": 123,
+    "prices": {
+      "regular": 4,
+      "spot": 2
+    },
+    "discovery_ns": 2000000000,
+    "fault_time_ns": 3000000000,
+    "provenance": {
+      "llmservingsim": "a4053bc1161872420e1e0607cb3409ef659b828e",
+      "astra_sim": "d3469945c50410cac2e727c9ab627670c965db2a",
+      "chakra": "30221ab8bfd9212aa9c063cd0b14a7d0a2ea6dd7",
+      "analytical_network": "5dc02322f04ac42fcfbb5304d5f7f2fa20d25e3e",
+      "analytical_memory": "62313ef09abaf6a9764d13e2684ca61247def14b",
+      "profile": "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1",
+      "model": "meta-llama/Llama-3.1-8B",
+      "variant": "bf16",
+      "tensor_parallel": 1,
+      "pipeline_parallel": 1,
+      "sha256": {
+        "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1/dense.csv": "6f23be95325a16544319b78c477d71bec8996fdc826ae55140c36f36e17973c4",
+        "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1/per_sequence.csv": "af9abb35ef5eb7c98e1856fa5fe5090008d8b98f1b6278b6d081577451d9c618",
+        "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1/attention.csv": "dd802390245b2c215a491b78c390482fbc6e49afc760182d7ce15fddff369175",
+        "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1/skew.csv": "7cf6ec2e063655b6ab4079c928849d0ec9a9559bab0b643c98584196cca471a2",
+        "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1/skew_fit.csv": "89e8f8ffba2f8968485cd11d0ac9fd50b5b2bf2593bd73e326b81a2e5958c8c3",
+        "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/meta.yaml": "01c964ad3e8ce9604773e7c0b3ae815c22545385d789842a920d8f33b1ce8b98",
+        "configs/model/meta-llama/Llama-3.1-8B.json": "54acfad3cffe057640904ca8a1e83525e6551c70c7a04c641f5a9eda0bbf64bd"
+      },
+      "authored_sha256": {
+        "fleet-lab/cpp/backend.cc": "9d6ee4baba1d4302f57af361b6e8a7fe3aa7f9bac9ef6679008b47f0873307cb",
+        "fleet-lab/cpp/backend.hh": "18fde3878b7318a9e054500fad49181cea6ab612796d6c629c72e06f069324b8",
+        "fleet-lab/cpp/controller.hh": "0693fe76dac6e39c343f01577610adebb23dad37ad57a5fc60c347671022d593",
+        "fleet-lab/cpp/core.cc": "93d70646ead19f21b115a33cda7baa7324facbe11673e788d6ab46902ae402a5",
+        "fleet-lab/cpp/test_clock.cc": "69e086e628acd01904bad743af6d189942ba4c354a1201da8bf4dad1d04c33c7",
+        "fleet-lab/python/fleetlab/__init__.py": "2035d4024b42da63600cd5ce9771b8ee109f9e4b7a084aef9841e23af28f1e42",
+        "fleet-lab/python/fleetlab/adapter.py": "c2f0bf331802f398fa463f32010aeb747cc54e347ea9ae6841a3745e446b20d5",
+        "fleet-lab/python/fleetlab/api.py": "3786fb4e425d2148482a1a0b60d21e88600a1b1d2e643c39d72bd3ddf79e782c",
+        "fleet-lab/python/fleetlab/cli.py": "0054a943574d95c85c9ad9dd81264356098a4e652eebc6a729cd3ebdfcfb5191",
+        "fleet-lab/python/fleetlab/core.py": "74df7df036bcd47881b27a99f58da3ff914396f8f472e648ab17dcc24f32da8f",
+        "fleet-lab/python/fleetlab/engine.py": "194f61f8b5e51c8c5b7637103d40368017dea33439252d7e34160d612fdf1225",
+        "fleet-lab/python/fleetlab/metrics.py": "3194ecec7ef2a0f24efc2335437ee1230c69d3e8e83cfb6cb77e04da7501fac0",
+        "fleet-lab/python/fleetlab/scenarios.py": "234576fba6bb41e50f7447dc76ee32b4b12e034919f810633b6f02fc2d48ab75",
+        "fleet-lab/patches/astra.patch": "18cd628f796decef22196d58f7980e7594cfdd1df2a7668ed6811f6c144874bb",
+        "fleet-lab/patches/memory.patch": "2e6c663781a89e4fa2e11af781dfab923306eb8f26949ca3226effccab5b761c",
+        "fleet-lab/patches/network.patch": "cea8b1c3a8cbd0dc85ffee4361d2b454c01922926a69f5a0e87b2c0148e100bb"
+      },
+      "binary_sha256": {
+        "core": "eaa6a9a5180b5e8e7fe29e22abeacbac18c0d4dd257e37cc101581ca17189664",
+        "astra": "9e6db716eb03f5750741787e6c352d226aa1f25311be4817dab58b1aed3bfd38"
+      },
+      "limitations": [
+        "kernel profile, not AWS/full-server fidelity",
+        "full-model KV is modeled upper bound without CUDA/activation reserve",
+        "independent PER_NPU remote memory; shared fabric cancellation excluded"
+      ]
+    }
+  },
+  "checks": [
+    "saved-run selection",
+    "desktop and mobile history",
+    "seek 10s shows physical Down and observed Ready, zero KV/new epoch",
+    "Requests table",
+    "Events filter",
+    "required search-suite selection",
+    "fixed-target search validation error",
+    "edited run launch and immutable manifest agreement",
+    "active cancellation reaches canceled",
+    "playback advances clock and displayed fleet",
+    "no browser console errors",
+    "professional application wording across controls, search, assumptions and statuses",
+    "descriptive scenario label preserves correlated_spot API value",
+    "mobile expanded settings remain readable with no horizontal overflow"
+  ],
+  "viewport_note": "Temporary browser viewport overrides; zoom affects CSS dimensions. Updated mobile CSS width487px, document width469px, with no horizontal overflow; expanded settings reviewed. Desktop CSS width1800px, document width1781px. Overrides reset before handoff.",
+  "corrected_retained_run": "cfdcfa5b-289f-4957-ae83-2a77f8305208",
+  "correlated_preset_check": {
+    "id": "625eac0b-6dc0-4f97-8871-e7e9cf128b0e",
+    "scenario": "correlated_spot",
+    "availability_ns": 120000000000,
+    "status": "canceled"
+  }
+}

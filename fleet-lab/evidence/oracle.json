@@ -1,0 +1,74 @@
+[
+  {
+    "label": "positive",
+    "passed": true,
+    "exhaustive_pairs": 10,
+    "feasible_pairs": 10,
+    "winner": {
+      "objective_usd": 0.05908988510733333,
+      "policy": "least_work",
+      "regular": 0,
+      "spot": 1,
+      "worst_scenario_usd": 0.05908988510733333,
+      "worst_ttft_ns": 52041345
+    },
+    "optimized": {
+      "evaluated_pairs": 10,
+      "feasible_pairs": 10,
+      "objective": "minimize maximum selected scenario total modeled USD",
+      "suite": [
+        "healthy"
+      ],
+      "runs": 10,
+      "physical_runs": 4,
+      "reused_runs": 6,
+      "peak_child_rss_kib": 148232,
+      "planned_runs": 10,
+      "coverage_complete": true,
+      "stop_reason": null,
+      "elapsed_seconds": 8.337416253983974,
+      "q": 0.1,
+      "seed": 42,
+      "count": 12,
+      "absolute_rate": 0.6400000000000001,
+      "status": "complete",
+      "invalid_evaluations": [],
+      "certified_rejected_pairs": 0,
+      "skipped_scenarios": 0,
+      "coverage_definition": "every pair fully evaluated or rejected by an exact completed-scenario or monotone SLO certificate"
+    }
+  },
+  {
+    "label": "failure",
+    "passed": true,
+    "exhaustive_pairs": 10,
+    "feasible_pairs": 0,
+    "winner": null,
+    "optimized": {
+      "evaluated_pairs": 10,
+      "feasible_pairs": 0,
+      "objective": "minimize maximum selected scenario total modeled USD",
+      "suite": [
+        "healthy",
+        "half"
+      ],
+      "runs": 20,
+      "physical_runs": 8,
+      "reused_runs": 12,
+      "peak_child_rss_kib": 162764,
+      "planned_runs": 20,
+      "coverage_complete": true,
+      "stop_reason": null,
+      "elapsed_seconds": 5.815881460963283,
+      "q": 10,
+      "seed": 42,
+      "count": 20,
+      "absolute_rate": 64.0,
+      "status": "complete",
+      "invalid_evaluations": [],
+      "certified_rejected_pairs": 10,
+      "skipped_scenarios": 0,
+      "coverage_definition": "every pair fully evaluated or rejected by an exact completed-scenario or monotone SLO certificate"
+    }
+  }
+]

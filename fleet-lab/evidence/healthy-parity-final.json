@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "requests": [
+    {
+      "id": 0,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 1,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 2,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 3,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 4,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 5,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 6,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 7,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 8,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    },
+    {
+      "id": 9,
+      "ttft_delta_ns": -1,
+      "e2e_delta_ns": -1
+    }
+  ],
+  "upstream_wall_seconds": 0.46586162503808737,
+  "fleet_wall_seconds": 0.46373316703829914,
+  "overhead_ratio": -0.004568863124568834,
+  "clock_tolerance_reason": "upstream bootstrap graph advances 1 ns; fleet time zero is explicit",
+  "overhead_scope": "small end-to-end fixture including Python startup and retained replay; not a broad capacity benchmark",
+  "target_overhead_fraction": 0.25,
+  "target_met": true
+}

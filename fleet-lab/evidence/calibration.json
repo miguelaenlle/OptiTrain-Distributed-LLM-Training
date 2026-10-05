@@ -1,0 +1,78 @@
+{
+  "q": 10,
+  "definition": "highest tested passing healthy single-worker rate",
+  "seed": 42,
+  "count": 1000,
+  "measured": [
+    {
+      "rate": 5,
+      "metrics": {
+        "completed": 1000,
+        "completion_rate": 1.0,
+        "compliance_rate": 1.0,
+        "compliant": 1000,
+        "conditional_itl_p95_ns": 13582134,
+        "conditional_ttft_p95_ns": 56062406,
+        "delivered_tokens": 73728,
+        "feasible": true,
+        "itl_sample_count": 72728,
+        "offered": 1000,
+        "outcomes": {
+          "Completed": 1000
+        },
+        "total_usd": 0.2656406398641667,
+        "ttft_sample_count": 1000,
+        "usd_per_completed_request": 0.0002656406398641667,
+        "usd_per_compliant_request": 0.0002656406398641667,
+        "usd_per_delivered_token": 3.602981768990976e-06
+      }
+    },
+    {
+      "rate": 10,
+      "metrics": {
+        "completed": 1000,
+        "completion_rate": 1.0,
+        "compliance_rate": 1.0,
+        "compliant": 1000,
+        "conditional_itl_p95_ns": 19375796,
+        "conditional_ttft_p95_ns": 66556977,
+        "delivered_tokens": 73728,
+        "feasible": true,
+        "itl_sample_count": 72728,
+        "offered": 1000,
+        "outcomes": {
+          "Completed": 1000
+        },
+        "total_usd": 0.1828203199325,
+        "ttft_sample_count": 1000,
+        "usd_per_completed_request": 0.0001828203199325,
+        "usd_per_compliant_request": 0.0001828203199325,
+        "usd_per_delivered_token": 2.4796592872789173e-06
+      }
+    },
+    {
+      "rate": 20,
+      "metrics": {
+        "completed": 1000,
+        "completion_rate": 1.0,
+        "compliance_rate": 0.936,
+        "compliant": 936,
+        "conditional_itl_p95_ns": 50666210,
+        "conditional_ttft_p95_ns": 1190176410,
+        "delivered_tokens": 73728,
+        "feasible": false,
+        "itl_sample_count": 72728,
+        "offered": 1000,
+        "outcomes": {
+          "Completed": 1000
+        },
+        "total_usd": 0.14141015996583334,
+        "ttft_sample_count": 1000,
+        "usd_per_completed_request": 0.00014141015996583335,
+        "usd_per_compliant_request": 0.00015107923073272794,
+        "usd_per_delivered_token": 1.917998046411585e-06
+      }
+    }
+  ],
+  "upper_bound_tested": true
+}

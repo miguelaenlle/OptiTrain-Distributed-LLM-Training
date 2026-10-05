@@ -119,3 +119,7 @@ Ephemeral workers managed by a stable routing plane.
   the live set; reroutes automatically on 5xx or transport errors.
 - **S3 Registry:** Workers publish 15s TTL heartbeats to S3. Stale nodes are
   silently dropped from rotation without complex consensus protocols.
+
+## CPU fleet simulation
+
+[OptiTrain Fleet Lab](fleet-lab/README.md) adds a local RTX PRO 6000/Llama 3.1 8B analytical fleet simulator, failure/recovery replay, modeled cost and SLO-constrained configuration search. It uses pinned LLMServingSim/ASTRA dependencies and runs without GPUs or cloud provisioning.

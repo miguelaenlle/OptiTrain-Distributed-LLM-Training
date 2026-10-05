@@ -1,0 +1,46 @@
+name: Fleet Lab CPU checks
+on:
+  pull_request:
+    paths: ['fleet-lab/**', '.github/workflows/fleet-lab.yml']
+  push:
+    branches: [main]
+    paths: ['fleet-lab/**', '.github/workflows/fleet-lab.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  simulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build dashboard
+        run: |
+          npm ci --prefix fleet-lab/web
+          npm run build --prefix fleet-lab/web
+          npm audit --prefix fleet-lab/web --audit-level=high
+      - name: Fetch pinned simulator
+        run: python3 fleet-lab/scripts/bootstrap.py
+      - name: Build CPU image and simulator
+        run: |
+          docker build -t optitrain-fleetlab:ci fleet-lab
+          docker run --rm -v "$PWD:/workspace" -w /workspace optitrain-fleetlab:ci bash fleet-lab/scripts/build.sh
+      - name: Authored checks and real integration gates
+        run: |
+          docker run --rm -v "$PWD:/workspace" -w /workspace -e PYTHONPATH=/workspace/fleet-lab/python optitrain-fleetlab:ci bash -c 'ruff check fleet-lab/python fleet-lab/scripts fleet-lab/tests && pytest -q fleet-lab/tests/test_engine.py fleet-lab/tests/test_api.py && python fleet-lab/tests/spike.py && python fleet-lab/tests/healthy_parity.py && python fleet-lab/tests/oracle.py'
+      - name: Upstream serving and accuracy parity
+        run: |
+          docker run --rm -v "$PWD:/workspace" -w /workspace/.cache/LLMServingSim -e PYTHONPATH=/workspace/.cache/chakra-runtime -e LOG_DIR=/workspace/.cache/validation optitrain-fleetlab:ci bash serving/validate.sh
+      - name: Preserve verification artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fleet-lab-cpu-evidence
+          path: |
+            .cache/validation/
+            .cache/healthy-parity/results.json
+            .cache/oracle/results.json
+            .cache/spike/journal.json

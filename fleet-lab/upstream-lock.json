@@ -1,0 +1,12 @@
+{
+  "llmservingsim": "a4053bc1161872420e1e0607cb3409ef659b828e",
+  "astra_sim": "d3469945c50410cac2e727c9ab627670c965db2a",
+  "chakra": "30221ab8bfd9212aa9c063cd0b14a7d0a2ea6dd7",
+  "analytical_network": "5dc02322f04ac42fcfbb5304d5f7f2fa20d25e3e",
+  "analytical_memory": "62313ef09abaf6a9764d13e2684ca61247def14b",
+  "profile": "profiler/perf/RTXPRO6000/meta-llama/Llama-3.1-8B/bf16/tp1",
+  "model": "meta-llama/Llama-3.1-8B",
+  "variant": "bf16",
+  "tensor_parallel": 1,
+  "pipeline_parallel": 1
+}

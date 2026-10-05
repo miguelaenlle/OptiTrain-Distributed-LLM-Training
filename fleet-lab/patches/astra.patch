@@ -1,0 +1,72 @@
+diff --git a/astra-sim/network_frontend/analytical/CMakeLists.txt b/astra-sim/network_frontend/analytical/CMakeLists.txt
+index 080ccd6..141724a 100644
+--- a/astra-sim/network_frontend/analytical/CMakeLists.txt
++++ b/astra-sim/network_frontend/analytical/CMakeLists.txt
+@@ -78,3 +78,9 @@ if (BUILDTARGET STREQUAL "all" OR BUILDTARGET STREQUAL "congestion_aware")
+             ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../lib/
+     )
+ endif ()
++
++if(DEFINED ENV{FLEETLAB_SOURCE})
++    target_sources(AstraSim_Analytical_Congestion_Unaware PRIVATE "$ENV{FLEETLAB_SOURCE}/backend.cc")
++    target_include_directories(AstraSim_Analytical_Congestion_Unaware PRIVATE "$ENV{FLEETLAB_SOURCE}")
++    target_compile_definitions(AstraSim_Analytical_Congestion_Unaware PRIVATE FLEETLAB_BUILD=1)
++endif()
+diff --git a/astra-sim/network_frontend/analytical/congestion_unaware/main.cc b/astra-sim/network_frontend/analytical/congestion_unaware/main.cc
+index eb39b71..8375c7e 100644
+--- a/astra-sim/network_frontend/analytical/congestion_unaware/main.cc
++++ b/astra-sim/network_frontend/analytical/congestion_unaware/main.cc
+@@ -16,6 +16,9 @@ LICENSE file in the root directory of this source tree.
+ #include <cstdlib>
+ #include <iostream>
+ #include <vector>
++#ifdef FLEETLAB_BUILD
++#include "backend.hh"
++#endif
+ 
+ using namespace AstraSim;
+ using namespace Analytical;
+@@ -207,6 +210,11 @@ int main(int argc, char* argv[]) {
+       }
+     }
+ 
++#ifdef FLEETLAB_BUILD
++    if (std::getenv("OPTITRAIN_FLEET_LAB")) {
++        return fleetlab::run_backend(event_queue, systems, memory_levels);
++    }
++#endif
+     // Initiate simulation
+     for (int i = 0; i < npus_count; i++) {
+         systems[i]->workload->fire();
+diff --git a/astra-sim/workload/Workload.cc b/astra-sim/workload/Workload.cc
+index abdd3a5..26a87a2 100644
+--- a/astra-sim/workload/Workload.cc
++++ b/astra-sim/workload/Workload.cc
+@@ -473,6 +473,7 @@ void Workload::call(EventType event, CallData* data) {
+             // should be fired by parent controller
+             sys->comm_NI->sim_notify_finished();
+             is_finished = true;
++            if (completion_hook) completion_hook();
+         }
+     }
+ }
+diff --git a/astra-sim/workload/Workload.hh b/astra-sim/workload/Workload.hh
+index 178e5e0..7694a7b 100644
+--- a/astra-sim/workload/Workload.hh
++++ b/astra-sim/workload/Workload.hh
+@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree.
+ #define __WORKLOAD_HH__
+ 
+ #include <memory>
++#include <functional>
+ #include <string>
+ #include <unordered_map>
+ #include <queue>
+@@ -54,6 +55,7 @@ class Workload : public Callable {
+     Sys* sys;
+     std::unordered_map<int, uint64_t> collective_comm_node_id_map;
+     std::unordered_map<int, DataSet*> collective_comm_wrapper_map;
++    std::function<void()> completion_hook;
+     bool is_finished;
+     uint32_t iteration;
+     std::string filename;

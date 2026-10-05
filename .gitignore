@@ -50,6 +50,9 @@ supervisor/*.out
 *.pem
 credentials
 .DS_Store
+.cache/
+fleet-lab/runs/
+fleet-lab/web/node_modules/
 .idea/
 .vscode/
 reports/
@@ -65,3 +68,6 @@ deploy/grafana/.live/
 
 # Grafana export artifacts (regenerate with export.py)
 deploy/grafana/data/
+
+fleet-lab/web/dist/
+fleet-lab/web/*.tsbuildinfo

@@ -138,6 +138,22 @@ Hazards are disabled in the default search. Prices are planning assumptions.
   distinguish old attempt identity from current worker identity. All numerical
   metrics are exactly equal across the saved-input re-run.
 
+## Retained-run performance
+
+[Measured performance](retained-performance.json) records one fresh 1,000-request
+run using identical saved flagship inputs. The full run, including graph generation,
+backend execution, indexing and metrics, took **51.678 s**. Measured CPU time was
+18.696 s user + 3.079 s system in the parent and 10.650 s user + 1.132 s system in
+completed children. Parent and maximum child process-lifetime peak RSS were both
+534,584 KiB (522.1 MiB); these are separate maxima, not aggregate memory usage.
+The journal contains 329,863 events (**6,383 events per wall second**). Retained
+artifacts before the benchmark report total 342,634,179 bytes (326.8 MiB) across
+17,685 files, with per-path sizes recorded in the JSON. The 177.772 s virtual
+horizon yields **3.44 virtual seconds per wall second**: analytical virtual-clock
+throughput, not measured GPU or service speedup. All numerical metrics remain
+exactly equal to the original saved-input flagship. This is a single retained-run
+sample rather than a general performance guarantee.
+
 ## Dashboard checks
 
 [UI ledger](ui-smoke.json) and genuine [desktop](screenshots/desktop.jpg),
@@ -147,7 +163,9 @@ inspection, event filtering, suite selection and fixed-target validation were
 exercised. An edited real job persisted its inputs and canceled its process group.
 A correlated-spot default job preserved the 120-second wait. Browser console
 errors were absent. Mobile history remains usable; viewport zoom and actual CSS
-width are recorded in the ledger. TypeScript/Vite build and npm audit passed.
+width are recorded in the ledger. Application copy uses consistent professional
+wording, descriptive scenario labels, and readable status and event names. Scenario
+labels preserve their original API identifiers. TypeScript/Vite build and npm audit passed.
 
 ## Reproduction and practical limits
 
@@ -161,6 +179,14 @@ them. Run the final identity comparison against a retained before-run:
 python fleet-lab/scripts/audit_attempt_identity.py \
   --before /workspace/.cache/flagships/low-round_robin \
   --output /workspace/.cache/identity-flagship-fresh
+```
+
+Capture another retained-run performance sample from saved inputs in a fresh directory:
+
+```sh
+python fleet-lab/scripts/benchmark_run.py \
+  --inputs /workspace/.cache/flagships/low-round_robin \
+  --output /workspace/.cache/performance-flagship-fresh
 ```
 
 This is CPU analytical evidence under fixed kernel profiles, not empirical GPU,

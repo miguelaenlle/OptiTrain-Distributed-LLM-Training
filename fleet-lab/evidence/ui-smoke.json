@@ -69,9 +69,12 @@
     "edited run launch and immutable manifest agreement",
     "active cancellation reaches canceled",
     "playback advances clock and displayed fleet",
-    "no browser console errors"
+    "no browser console errors",
+    "professional application wording across controls, search, assumptions and statuses",
+    "descriptive scenario label preserves correlated_spot API value",
+    "mobile expanded settings remain readable with no horizontal overflow"
   ],
-  "viewport_note": "Temporary browser viewport overrides; zoom affects CSS dimensions. Final mobile CSS width443px, document width426px, with no horizontal overflow. Desktop CSS width1636px, document width1619px. Overrides reset before handoff.",
+  "viewport_note": "Temporary browser viewport overrides; zoom affects CSS dimensions. Updated mobile CSS width487px, document width469px, with no horizontal overflow; expanded settings reviewed. Desktop CSS width1800px, document width1781px. Overrides reset before handoff.",
   "corrected_retained_run": "cfdcfa5b-289f-4957-ae83-2a77f8305208",
   "correlated_preset_check": {
     "id": "625eac0b-6dc0-4f97-8871-e7e9cf128b0e",

@@ -1,6 +1,8 @@
 import copy
 import json
 import random
+import runpy
+from pathlib import Path
 
 import pytest
 from fleetlab.core import call
@@ -96,6 +98,15 @@ def test_exact_tie_crash_wins_delayed_notification_and_all_down_recovery(tmp_pat
     retry = next(e for e in journal if e["event"] == "request" and e["state"] == "RetryWait")
     assert retry["time_ns"] == first + cfg["discovery_ns"]
     assert result["completed"] == 1 and summary["requests"][0]["attempts"] == 2
+    history = [e for e in journal if e["event"] == "request"]
+    # Recovery precedes delayed notification: old attempt identity is immutable,
+    # including RetryWait/Waiting; a new dispatch captures the new incarnation.
+    assert all(e["incarnation"] == 0 for e in history if e["attempts"] == 1)
+    assert all(e["attempt_incarnation"] == e["incarnation"] for e in history)
+    assert all(e["incarnation"] == 1 for e in history if e["attempts"] == 2)
+    assert retry["current_worker_incarnation"] == 1
+    assert retry["attempt_worker"] == 0
+    assert summary["requests"][0]["attempt_incarnation"] == 1
     assert any(e["event"] == "cancelled" and e["callbacks_removed"] > 0 for e in journal)
     # terminated allocation does not bill its replacement wait.
     assert abs(result["total_usd"] - (1 - 0.002) * 3 / 3600) < 1e-12
@@ -120,8 +131,70 @@ def test_interrupted_stream_no_retry(tmp_path):
     request = summary["requests"][0]
     assert request["state"] == "Failed" and request["delivered"] == 1 and request["attempts"] == 1
     assert request["finish_ns"] == 25_000_000
+    failure = next(e for e in journal if e["event"] == "request" and e["state"] == "Failed")
+    assert failure["attempt_incarnation"] == 0 and failure["current_worker_incarnation"] == 1
     assert result["compliant"] == 0 and result["completion_rate"] == 0
     assert not any(e["event"] == "token" and e["time_ns"] >= 20_000_000 for e in journal)
+
+
+def test_old_attempt_deadline_identity_after_worker_recovers(tmp_path):
+    cfg = base()
+    cfg.update(discovery_ns=50_000_000, deadline_ns=6_000_000)
+    cfg["faults"] = [
+        {
+            "time_ns": 1_000_000,
+            "workers": [0],
+            "availability_ns": 2_000_000,
+            "init_ns": 1_000_000,
+            "load_ns": 1_000_000,
+        }
+    ]
+    result, summary, journal, _ = execute(cfg, tmp_path, "identity-deadline")
+    deadline = next(e for e in journal if e["event"] == "request" and e["state"] == "TimedOut")
+    assert deadline["attempt_id"] == 1 and deadline["attempt_worker"] == 0
+    assert deadline["incarnation"] == deadline["attempt_incarnation"] == 0
+    assert deadline["current_worker_incarnation"] == 1 and deadline["time_ns"] == 6_000_000
+    assert result["completed"] == 0 and summary["requests"][0]["delivered"] == 0
+    assert summary["requests"][0]["attempt_incarnation"] == 0
+    assert not any(e["event"] == "token" for e in journal)
+
+
+@pytest.mark.parametrize("availability,init,load", [(15, 5, 10), (85, 5, 30), (565, 5, 30)])
+def test_physical_recovery_sensitivity_and_post_outage_probe(tmp_path, availability, init, load):
+    cfg = base()
+    recovery = availability + init + load
+    cfg.update(
+        spot=1,
+        discovery_ns=5 * 10**9,
+        report_period_ns=10**9,
+        report_delay_ns=5 * 10**9,
+        horizon_ns=(recovery + 6) * 10**9,
+    )
+    cfg["requests"][0]["arrival_ns"] = (recovery + 5) * 10**9 + 100_000_000
+    cfg["faults"] = [
+        {
+            "time_ns": 0,
+            "workers": [0, 1],
+            "terminate": True,
+            "availability_ns": availability * 10**9,
+            "init_ns": init * 10**9,
+            "load_ns": load * 10**9,
+        }
+    ]
+    result, summary, journal, _ = execute(cfg, tmp_path, f"recovery-{recovery}")
+    assert result["completed"] == 1 and summary["requests"][0]["attempt_incarnation"] == 1
+    for worker in (0, 1):
+        ready = next(
+            e
+            for e in journal
+            if e["event"] == "worker"
+            and e["worker"] == worker
+            and e["state"] == "Ready"
+            and e["incarnation"] == 1
+        )
+        assert ready["time_ns"] == recovery * 10**9
+    # Only allocated initialization/loading/post-recovery idle time is charged.
+    assert abs(result["total_usd"] - (recovery + 6 - availability) * 4.2 / 3600) < 1e-12
 
 
 def test_duplicate_crash_and_restart_during_loading(tmp_path):
@@ -378,3 +451,31 @@ def test_explicit_session_minimum_billing(tmp_path):
     assert abs(result["total_usd"] - 0.1) < 1e-12
     assert summary["worker_costs"][0]["billed_ns"] == 120 * 10**9
     assert summary["worker_costs"][0]["allocated_ns"] == 998_000_000
+
+
+def test_parameterized_continuation_preserves_primary_and_budgets(tmp_path):
+    from fleetlab.cli import search
+
+    complete = runpy.run_path(
+        str(Path(__file__).resolve().parents[1] / "scripts" / "complete_search.py")
+    )["complete"]
+    source = tmp_path / "primary"
+    primary = search(source, q=0.1, count=3, max_replicas=1, suite=["healthy"], wall_seconds=0)
+    assert primary["status"] == "incomplete" and primary["runs"] == 0
+    before = (source / "search.json").read_bytes()
+    result = complete(source, tmp_path / "continuation")
+    assert (
+        result["coverage_complete"] and result["evaluated_pairs"] == result["feasible_pairs"] == 4
+    )
+    assert result["physical_runs"] == 2 and result["reused_runs"] == 2
+    assert (source / "search.json").read_bytes() == before
+    limited = complete(source, tmp_path / "limited", wall_seconds=0.0001)
+    assert (
+        not limited["coverage_complete"] and limited["stop_reason"] == "supplemental wall-time cap"
+    )
+    manifest = json.loads((source / "search-manifest.json").read_text())
+    manifest["provenance"] = {"changed": True}
+    (source / "search-manifest.json").write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="exact original"):
+        complete(source, tmp_path / "changed")
+    assert not (tmp_path / "changed").exists()

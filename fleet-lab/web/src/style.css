@@ -117,7 +117,7 @@ main {
   padding: 36px 42px;
   max-width: 1500px;
   width: 100%;
-  margin: auto;
+  margin: 0 auto;
 }
 header {
   display: flex;
@@ -395,7 +395,6 @@ pre {
     border-bottom: 1px solid #25303a;
   }
   .brand span,
-  .history,
   .foot,
   aside > .label {
     display: none;
@@ -539,5 +538,23 @@ pre {
 @media (max-width: 700px) {
   .charts {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .history {
+    display: flex;
+    gap: 8px;
+    max-height: 90px;
+    margin-top: 12px;
+  }
+  .history button {
+    min-width: 170px;
+    width: auto;
+    flex-shrink: 0;
+  }
+  .new {
+    font-size: 11px;
+    padding: 8px;
   }
 }

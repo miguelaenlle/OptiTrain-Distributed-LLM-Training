@@ -32,6 +32,10 @@ class Controller {
     J input;
     std::string state = "NotArrived";
     int worker = -1, attempts = 0, delivered = 0;
+    // Immutable assignment identity for the latest attempt, including
+    // wait/terminal history.
+    int attempt_worker = -1;
+    uint64_t attempt_incarnation = 0;
     Tick first = 0, last = 0, finish = 0;
     std::vector<Tick> gaps;
   };
@@ -67,8 +71,12 @@ class Controller {
           {"state", r.state},
           {"worker", r.worker},
           {"attempts", r.attempts},
-          {"attempt_id", id * 1024 + r.attempts},
-          {"incarnation",
+          {"attempt_id", r.attempts ? J(id * 1024 + r.attempts) : J(nullptr)},
+          {"attempt_worker", r.attempts ? J(r.attempt_worker) : J(nullptr)},
+          {"attempt_incarnation",
+           r.attempts ? J(r.attempt_incarnation) : J(nullptr)},
+          {"incarnation", r.attempts ? J(r.attempt_incarnation) : J(nullptr)},
+          {"current_worker_incarnation",
            r.worker >= 0 ? J(workers[r.worker].generation) : J(nullptr)},
           {"delivered", r.delivered}});
   }
@@ -118,6 +126,8 @@ class Controller {
       }
       rr = (chosen + 1) % workers.size();
       r.worker = chosen;
+      r.attempt_worker = chosen;
+      r.attempt_incarnation = workers[chosen].generation;
       ++r.attempts;
       int aid = id * 1024 + r.attempts;
       attempt_request[aid] = id;
@@ -595,6 +605,10 @@ public:
            {"arrival_ns", arrival},
            {"state", r.state},
            {"attempts", r.attempts},
+           {"attempt_id", r.attempts ? J(id * 1024 + r.attempts) : J(nullptr)},
+           {"attempt_worker", r.attempts ? J(r.attempt_worker) : J(nullptr)},
+           {"attempt_incarnation",
+            r.attempts ? J(r.attempt_incarnation) : J(nullptr)},
            {"delivered", r.delivered},
            {"first_token_ns", r.first},
            {"last_token_ns", r.last},

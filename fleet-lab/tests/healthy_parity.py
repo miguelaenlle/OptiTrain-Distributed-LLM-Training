@@ -12,8 +12,8 @@ from fleetlab.adapter import UPSTREAM
 from fleetlab.engine import run
 from fleetlab.scenarios import experiment
 
-root = Path("/workspace/.cache/healthy-parity")
-root.mkdir(exist_ok=True)
+root = Path(os.environ.get("FLEETLAB_PARITY_OUTPUT", "/workspace/.cache/healthy-parity"))
+root.mkdir(parents=True, exist_ok=False)
 requests = [
     {
         "id": i,

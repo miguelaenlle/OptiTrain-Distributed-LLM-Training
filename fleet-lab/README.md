@@ -81,4 +81,27 @@ docker run --rm -v "$PWD:/workspace" -w /workspace optitrain-fleetlab:dev bash f
 
 The upstream `serving/validate.sh` is also required: 58 exact clock baselines and eight recorded per-request accuracy artifacts. ASAN/UBSAN checks exercise the real backend; upstream process-lifetime Sys/logger ownership requires disabling leak detection for that binary, while the standalone event-clock test runs with leak detection enabled. A small healthy parity fixture tolerates only the upstream bootstrap graph's 1 ns offset; wall-overhead results are scoped to that fixture and do not establish general performance.
 
+For repeated parity/oracle checks, set `FLEETLAB_PARITY_OUTPUT` and
+`FLEETLAB_ORACLE_OUTPUT` to fresh directories inside the container; existing runs
+are immutable. The supplemental harness is explicit and preserves the primary
+batch's incomplete status:
+
+```sh
+docker run --rm -v "$PWD:/workspace" -w /workspace -e PYTHONPATH=/workspace/fleet-lab/python \
+  optitrain-fleetlab:dev python fleet-lab/scripts/complete_search.py \
+  --source /workspace/fleet-lab/runs/search --output /workspace/fleet-lab/runs/search-continuation
+```
+
+Continue before changing the engine/profile: the harness rejects mismatched
+provenance. It validates primary evidence and retains independent primary,
+supplemental and combined budgets/coverage. It does not change the app's default
+30-minute limit.
+
+Request history records immutable `attempt_worker` and `attempt_incarnation`
+from dispatch; request-event `incarnation` aliases that attempt identity.
+`current_worker_incarnation` is separate and can advance while a delayed failure
+or deadline still belongs to the old attempt. Before first assignment these
+attempt fields are null. Worker events continue to describe current physical
+incarnation. The final summary retains the last assigned attempt's identity.
+
 See [verification evidence](evidence/README.md) for measured results, coverage and practical limits. Delta recompute/recall, advanced preemption and real-cluster validation remain separate roadmap work; this MVP makes no real GPU/failure-fidelity claim.

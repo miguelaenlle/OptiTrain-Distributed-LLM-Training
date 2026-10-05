@@ -1,6 +1,7 @@
 """Exhaustive bounded-grid oracle against exact pruning/reuse search."""
 
 import json
+import os
 from pathlib import Path
 
 from fleetlab.cli import search
@@ -8,8 +9,8 @@ from fleetlab.core import call
 from fleetlab.engine import run
 from fleetlab.scenarios import experiment, trace
 
-root = Path("/workspace/.cache/oracle")
-root.mkdir(exist_ok=True)
+root = Path(os.environ.get("FLEETLAB_ORACLE_OUTPUT", "/workspace/.cache/oracle"))
+root.mkdir(parents=True, exist_ok=False)
 checks = []
 for label, suite, q, count in [
     ("positive", ["healthy"], 0.1, 12),

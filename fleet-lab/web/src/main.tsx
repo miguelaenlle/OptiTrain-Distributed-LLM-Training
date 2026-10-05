@@ -204,12 +204,16 @@ function App() {
     const timer = setInterval(
       () =>
         setCursor((value) =>
-          Math.min(value + 0.25, (run?.manifest?.horizon_ns ?? 0) / 1e9),
+          Math.min(value + 1, (run?.manifest?.horizon_ns ?? 0) / 1e9),
         ),
-      250,
+      1000,
     );
     return () => clearInterval(timer);
-  }, [playing, run]);
+  }, [playing, run?.manifest?.horizon_ns]);
+  useEffect(() => {
+    if (playing && cursor >= (run?.manifest?.horizon_ns ?? 0) / 1e9)
+      setPlaying(false);
+  }, [playing, cursor, run?.manifest?.horizon_ns]);
   async function launch(search = false) {
     try {
       setError("");
@@ -319,7 +323,9 @@ function App() {
                 onChange={(e) => setRegular(+e.target.value)}
               />
             </label>
-            <small>$3.00 / instance hour · assumed</small>
+            <small>
+              ${settings.regularPrice.toFixed(2)} / instance hour · assumed
+            </small>
           </div>
           <div>
             <label>
@@ -333,7 +339,9 @@ function App() {
                 onChange={(e) => setSpot(+e.target.value)}
               />
             </label>
-            <small>$1.20 / instance hour · assumed</small>
+            <small>
+              ${settings.spotPrice.toFixed(2)} / instance hour · assumed
+            </small>
           </div>
           <label>
             Routing
@@ -437,8 +445,9 @@ function App() {
           </div>
           <p>
             Faults affect every replica on the selected physical nodes. Exact
-            targets override count and preset. These controls also apply to
-            configuration search.
+            targets override count and preset for fixed-fleet runs. Search uses
+            relative scenario targets; clear exact targets and fault count
+            first.
           </p>
         </details>
         <div className="metrics">

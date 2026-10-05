@@ -1,0 +1,18 @@
+[
+  {
+    "label": "positive",
+    "passed": true,
+    "exhaustive_pairs": 10,
+    "feasible_pairs": 10,
+    "optimized_runs": 10,
+    "coverage_complete": true
+  },
+  {
+    "label": "failure",
+    "passed": true,
+    "exhaustive_pairs": 10,
+    "feasible_pairs": 0,
+    "optimized_runs": 20,
+    "coverage_complete": true
+  }
+]

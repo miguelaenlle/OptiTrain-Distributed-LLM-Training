@@ -1,0 +1,257 @@
+{
+  "scope": "Independent calibrated-q fluid and renewal heuristics, not SLO predictions or measured provider reliability",
+  "q": 10,
+  "rate": 64,
+  "horizon_seconds": 177.772374215,
+  "capacity_grid": [
+    {
+      "replicas": 1,
+      "healthy_capacity": 10,
+      "half_failure_capacity": 0,
+      "failure_headroom": -64,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 6400,
+      "all_spot_assumed_usd": 0.05925745807166667
+    },
+    {
+      "replicas": 2,
+      "healthy_capacity": 20,
+      "half_failure_capacity": 10,
+      "failure_headroom": -54,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 5400,
+      "all_spot_assumed_usd": 0.11851491614333334
+    },
+    {
+      "replicas": 3,
+      "healthy_capacity": 30,
+      "half_failure_capacity": 10,
+      "failure_headroom": -54,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 5400,
+      "all_spot_assumed_usd": 0.177772374215
+    },
+    {
+      "replicas": 4,
+      "healthy_capacity": 40,
+      "half_failure_capacity": 20,
+      "failure_headroom": -44,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 4400,
+      "all_spot_assumed_usd": 0.2370298322866667
+    },
+    {
+      "replicas": 5,
+      "healthy_capacity": 50,
+      "half_failure_capacity": 20,
+      "failure_headroom": -44,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 4400,
+      "all_spot_assumed_usd": 0.29628729035833334
+    },
+    {
+      "replicas": 6,
+      "healthy_capacity": 60,
+      "half_failure_capacity": 30,
+      "failure_headroom": -34,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 3400,
+      "all_spot_assumed_usd": 0.35554474843
+    },
+    {
+      "replicas": 7,
+      "healthy_capacity": 70,
+      "half_failure_capacity": 30,
+      "failure_headroom": -34,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 3400,
+      "all_spot_assumed_usd": 0.4148022065016666
+    },
+    {
+      "replicas": 8,
+      "healthy_capacity": 80,
+      "half_failure_capacity": 40,
+      "failure_headroom": -24,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 2400,
+      "all_spot_assumed_usd": 0.4740596645733334
+    },
+    {
+      "replicas": 9,
+      "healthy_capacity": 90,
+      "half_failure_capacity": 40,
+      "failure_headroom": -24,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 2400,
+      "all_spot_assumed_usd": 0.5333171226450001
+    },
+    {
+      "replicas": 10,
+      "healthy_capacity": 100,
+      "half_failure_capacity": 50,
+      "failure_headroom": -14,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 1400,
+      "all_spot_assumed_usd": 0.5925745807166667
+    },
+    {
+      "replicas": 11,
+      "healthy_capacity": 110,
+      "half_failure_capacity": 50,
+      "failure_headroom": -14,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 1400,
+      "all_spot_assumed_usd": 0.6518320387883333
+    },
+    {
+      "replicas": 12,
+      "healthy_capacity": 120,
+      "half_failure_capacity": 60,
+      "failure_headroom": -4,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 400,
+      "all_spot_assumed_usd": 0.71108949686
+    },
+    {
+      "replicas": 13,
+      "healthy_capacity": 130,
+      "half_failure_capacity": 60,
+      "failure_headroom": -4,
+      "capacity_pass": false,
+      "backlog_requests_for_100s": 400,
+      "all_spot_assumed_usd": 0.7703469549316667
+    },
+    {
+      "replicas": 14,
+      "healthy_capacity": 140,
+      "half_failure_capacity": 70,
+      "failure_headroom": 6,
+      "capacity_pass": true,
+      "backlog_requests_for_100s": 0,
+      "all_spot_assumed_usd": 0.8296044130033332
+    },
+    {
+      "replicas": 15,
+      "healthy_capacity": 150,
+      "half_failure_capacity": 70,
+      "failure_headroom": 6,
+      "capacity_pass": true,
+      "backlog_requests_for_100s": 0,
+      "all_spot_assumed_usd": 0.888861871075
+    },
+    {
+      "replicas": 16,
+      "healthy_capacity": 160,
+      "half_failure_capacity": 80,
+      "failure_headroom": 16,
+      "capacity_pass": true,
+      "backlog_requests_for_100s": 0,
+      "all_spot_assumed_usd": 0.9481193291466667
+    }
+  ],
+  "billing_price_sensitivity": [
+    {
+      "spot_regular_price_ratio": 0.2,
+      "regular_usd_per_hour": 3,
+      "spot_usd_per_hour": 0.6000000000000001,
+      "flagship_total_usd": 1.42217899372,
+      "same_dynamics": true
+    },
+    {
+      "spot_regular_price_ratio": 0.4,
+      "regular_usd_per_hour": 3,
+      "spot_usd_per_hour": 1.2000000000000002,
+      "flagship_total_usd": 1.6592088260066669,
+      "same_dynamics": true
+    },
+    {
+      "spot_regular_price_ratio": 0.6,
+      "regular_usd_per_hour": 3,
+      "spot_usd_per_hour": 1.7999999999999998,
+      "flagship_total_usd": 1.8962386582933333,
+      "same_dynamics": true
+    },
+    {
+      "spot_regular_price_ratio": 0.8,
+      "regular_usd_per_hour": 3,
+      "spot_usd_per_hour": 2.4000000000000004,
+      "flagship_total_usd": 2.1332684905800003,
+      "same_dynamics": true
+    }
+  ],
+  "assumed_hazard_availability_sensitivity": [
+    {
+      "assumed_spot_active_mean_hours": 6,
+      "replacement_recovery_seconds": 30,
+      "renewal_availability": 0.9986130374479889,
+      "availability_adjusted_q": 9.986130374479888
+    },
+    {
+      "assumed_spot_active_mean_hours": 6,
+      "replacement_recovery_seconds": 100,
+      "renewal_availability": 0.9953917050691244,
+      "availability_adjusted_q": 9.953917050691244
+    },
+    {
+      "assumed_spot_active_mean_hours": 6,
+      "replacement_recovery_seconds": 120,
+      "renewal_availability": 0.994475138121547,
+      "availability_adjusted_q": 9.94475138121547
+    },
+    {
+      "assumed_spot_active_mean_hours": 6,
+      "replacement_recovery_seconds": 600,
+      "renewal_availability": 0.972972972972973,
+      "availability_adjusted_q": 9.72972972972973
+    },
+    {
+      "assumed_spot_active_mean_hours": 24,
+      "replacement_recovery_seconds": 30,
+      "renewal_availability": 0.9996528982992017,
+      "availability_adjusted_q": 9.996528982992016
+    },
+    {
+      "assumed_spot_active_mean_hours": 24,
+      "replacement_recovery_seconds": 100,
+      "renewal_availability": 0.9988439306358381,
+      "availability_adjusted_q": 9.98843930635838
+    },
+    {
+      "assumed_spot_active_mean_hours": 24,
+      "replacement_recovery_seconds": 120,
+      "renewal_availability": 0.9986130374479889,
+      "availability_adjusted_q": 9.986130374479888
+    },
+    {
+      "assumed_spot_active_mean_hours": 24,
+      "replacement_recovery_seconds": 600,
+      "renewal_availability": 0.993103448275862,
+      "availability_adjusted_q": 9.931034482758621
+    },
+    {
+      "assumed_spot_active_mean_hours": 72,
+      "replacement_recovery_seconds": 30,
+      "renewal_availability": 0.999884272653628,
+      "availability_adjusted_q": 9.99884272653628
+    },
+    {
+      "assumed_spot_active_mean_hours": 72,
+      "replacement_recovery_seconds": 100,
+      "renewal_availability": 0.9996143463170073,
+      "availability_adjusted_q": 9.996143463170073
+    },
+    {
+      "assumed_spot_active_mean_hours": 72,
+      "replacement_recovery_seconds": 120,
+      "renewal_availability": 0.999537251272559,
+      "availability_adjusted_q": 9.99537251272559
+    },
+    {
+      "assumed_spot_active_mean_hours": 72,
+      "replacement_recovery_seconds": 600,
+      "renewal_availability": 0.9976905311778291,
+      "availability_adjusted_q": 9.97690531177829
+    }
+  ],
+  "near_boundary": "14 replicas have 7 survivors (70 requests/s) versus 64 offered; 16 replicas have 80 survivor capacity. Replay can still fail all-offered SLO because discovery, interrupted streams, routing and original deadlines are absent from this fluid heuristic."
+}

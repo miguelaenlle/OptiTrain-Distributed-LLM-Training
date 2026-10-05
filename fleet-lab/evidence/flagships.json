@@ -1,0 +1,143 @@
+{
+  "low-round_robin": {
+    "completed": 972,
+    "completion_rate": 0.972,
+    "compliance_rate": 0.823,
+    "compliant": 823,
+    "conditional_itl_p95_ns": 14896156,
+    "conditional_ttft_p95_ns": 5127575296,
+    "delivered_tokens": 72154,
+    "feasible": false,
+    "itl_sample_count": 70036,
+    "offered": 1000,
+    "outcomes": {
+      "Completed": 972,
+      "Failed": 28
+    },
+    "rates": {
+      "completed_requests_per_second": 5.467666189935967,
+      "compliant_requests_per_second": 4.62951571431821,
+      "delivered_tokens_per_second": 405.87858669613144,
+      "window_end_ns": 177772374215,
+      "window_start_ns": 0
+    },
+    "total_usd": 1.659208826006667,
+    "ttft_sample_count": 972,
+    "usd_per_completed_request": 0.0017070049650274352,
+    "usd_per_compliant_request": 0.0020160496063264485,
+    "usd_per_delivered_token": 2.299538245983129e-05
+  },
+  "high-round_robin": {
+    "completed": 943,
+    "completion_rate": 0.943,
+    "compliance_rate": 0.688,
+    "compliant": 688,
+    "conditional_itl_p95_ns": 14765362,
+    "conditional_ttft_p95_ns": 5148904312,
+    "delivered_tokens": 70838,
+    "feasible": false,
+    "itl_sample_count": 66897,
+    "offered": 1000,
+    "outcomes": {
+      "Completed": 943,
+      "Failed": 57
+    },
+    "rates": {
+      "completed_requests_per_second": 5.41501942784408,
+      "compliant_requests_per_second": 3.950724672700665,
+      "delivered_tokens_per_second": 406.7753406464676,
+      "window_end_ns": 174145266248,
+      "window_start_ns": 0
+    },
+    "total_usd": 1.6253558183146668,
+    "ttft_sample_count": 943,
+    "usd_per_completed_request": 0.001723601079867091,
+    "usd_per_compliant_request": 0.002362435782434109,
+    "usd_per_delivered_token": 2.294468813792974e-05
+  },
+  "low-least_work": {
+    "completed": 971,
+    "completion_rate": 0.971,
+    "compliance_rate": 0.903,
+    "compliant": 903,
+    "conditional_itl_p95_ns": 13963092,
+    "conditional_ttft_p95_ns": 5119714647,
+    "delivered_tokens": 72441,
+    "feasible": false,
+    "itl_sample_count": 70069,
+    "offered": 1000,
+    "outcomes": {
+      "Completed": 971,
+      "Failed": 29
+    },
+    "rates": {
+      "completed_requests_per_second": 5.462041018958666,
+      "compliant_requests_per_second": 5.0795293925022404,
+      "delivered_tokens_per_second": 407.49301076661664,
+      "window_end_ns": 177772374215,
+      "window_start_ns": 0
+    },
+    "total_usd": 1.659208826006667,
+    "ttft_sample_count": 971,
+    "usd_per_completed_request": 0.0017087629516031586,
+    "usd_per_compliant_request": 0.0018374405603617575,
+    "usd_per_delivered_token": 2.2904278323141138e-05
+  },
+  "high-least_work": {
+    "completed": 936,
+    "completion_rate": 0.936,
+    "compliance_rate": 0.751,
+    "compliant": 751,
+    "conditional_itl_p95_ns": 16509754,
+    "conditional_ttft_p95_ns": 5144373143,
+    "delivered_tokens": 70902,
+    "feasible": false,
+    "itl_sample_count": 66712,
+    "offered": 1000,
+    "outcomes": {
+      "Completed": 936,
+      "Failed": 64
+    },
+    "rates": {
+      "completed_requests_per_second": 5.3748231012323,
+      "compliant_requests_per_second": 4.312491612206685,
+      "delivered_tokens_per_second": 407.1428499183467,
+      "window_end_ns": 174145266248,
+      "window_start_ns": 0
+    },
+    "total_usd": 1.6253558183146668,
+    "ttft_sample_count": 936,
+    "usd_per_completed_request": 0.001736491258883191,
+    "usd_per_compliant_request": 0.002164255417196627,
+    "usd_per_delivered_token": 2.2923977014959618e-05
+  },
+  "all-down": {
+    "completed": 444,
+    "completion_rate": 0.4435564435564436,
+    "compliance_rate": 0.4435564435564436,
+    "compliant": 444,
+    "conditional_itl_p95_ns": 11516096,
+    "conditional_ttft_p95_ns": 53084153,
+    "delivered_tokens": 34003,
+    "feasible": false,
+    "itl_sample_count": 31368,
+    "offered": 1001,
+    "outcomes": {
+      "Completed": 444,
+      "Failed": 51,
+      "TimedOut": 506
+    },
+    "rates": {
+      "completed_requests_per_second": 2.4975759139213674,
+      "compliant_requests_per_second": 2.4975759139213674,
+      "delivered_tokens_per_second": 191.27268874114472,
+      "window_end_ns": 177772374215,
+      "window_start_ns": 0
+    },
+    "total_usd": 1.659208826006667,
+    "ttft_sample_count": 444,
+    "usd_per_completed_request": 0.003736956815330331,
+    "usd_per_compliant_request": 0.003736956815330331,
+    "usd_per_delivered_token": 4.879595406307288e-05
+  }
+}

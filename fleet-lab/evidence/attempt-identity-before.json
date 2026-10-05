@@ -1,0 +1,33 @@
+{
+  "mislabeled_history_events": 178,
+  "example": [
+    {
+      "dispatch": {
+        "attempt_id": 447489,
+        "attempts": 1,
+        "delivered": 0,
+        "event": "request",
+        "id": 437,
+        "incarnation": 0,
+        "protocol": 1,
+        "state": "Assigned",
+        "time_ns": 6918289977,
+        "worker": 5,
+        "seq": 146592
+      },
+      "later": {
+        "attempt_id": 447489,
+        "attempts": 1,
+        "delivered": 71,
+        "event": "request",
+        "id": 437,
+        "incarnation": 1,
+        "protocol": 1,
+        "state": "Failed",
+        "time_ns": 12772374214,
+        "worker": 5,
+        "seq": 217866
+      }
+    }
+  ]
+}

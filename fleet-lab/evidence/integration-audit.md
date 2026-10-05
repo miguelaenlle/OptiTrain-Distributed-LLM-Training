@@ -1,4 +1,4 @@
-# Integration audit (in progress)
+# Integration audit
 
 Pinned upstream: a4053bc1161872420e1e0607cb3409ef659b828e.
 ASTRA: d3469945c50410cac2e727c9ab627670c965db2a.
@@ -19,5 +19,27 @@ ASTRA: d3469945c50410cac2e727c9ab627670c965db2a.
 - Legacy healthy CLI remains the parity reference. New controller protocol is
   versioned JSON lines, synchronized exclusively by ASTRA virtual nanoseconds.
 
-Evidence gates not yet passed. No exact cancellation or healthy parity result is
-claimed until the compiled integration spike and preserved upstream checks pass.
+The compiled cancellation spike passed: a crash at 1,000 ns removed the actual
+pending compute callback; no old completion was observed; a fresh context completed
+at 1,042,431,370 ns. The all-down clock advanced to future recovery. The focused
+suite exercises equal-time crash priority, delayed notification, interrupted
+streams, repeated faults during recovery/loading, colocated node loss, delayed
+stale delivery suppression, original deadlines and cancellation ownership.
+
+The original upstream validation passed all 58 checks and all eight recorded
+`sim.csv`/summary comparisons were byte-identical. The opt-in healthy fixture
+matched delivered-token counts and every ITL exactly; TTFT/E2E differed by only
+the audited 1 ns upstream bootstrap graph. GitHub run 37256594058 independently
+passed the fresh pinned build and the same gates on commit 607e08c.
+
+ASAN/UBSAN passed the 15 real-engine tests. Leak detection is disabled for the
+upstream process-lifetime Sys/logger ownership; the standalone clock test passed
+with leak detection enabled. This does not establish upstream leak cleanliness.
+
+A subsequent causal-identity audit found that request history used the current
+worker incarnation when recording delayed observations. This affects diagnostic
+labels, not callback guards, request outcomes, timing or billing. The correction and its regressions passed. A fresh 1,000-request retained
+flagship audited every history/token event, reduced mislabels 178 to zero, and
+matched all numerical metrics exactly under identical saved inputs. The frozen
+sweep remains tied to its original revision; see the evidence ledger and
+`attempt-identity-audit.json` for before/after provenance.

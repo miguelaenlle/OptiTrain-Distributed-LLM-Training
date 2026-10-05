@@ -1,0 +1,282 @@
+[
+  {
+    "name": "seed-99-round_robin",
+    "seed": 99,
+    "policy": "round_robin",
+    "overrides": {},
+    "metrics": {
+      "completed": 976,
+      "completion_rate": 0.976,
+      "compliance_rate": 0.804,
+      "compliant": 804,
+      "conditional_itl_p95_ns": 15482950,
+      "conditional_ttft_p95_ns": 5145894656,
+      "delivered_tokens": 75513,
+      "feasible": false,
+      "itl_sample_count": 73456,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 976,
+        "Failed": 24
+      },
+      "rates": {
+        "completed_requests_per_second": 5.501616579759521,
+        "compliant_requests_per_second": 4.532069395621572,
+        "delivered_tokens_per_second": 425.6593983477261,
+        "window_end_ns": 177402402703,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6557557585613325,
+      "ttft_sample_count": 976,
+      "usd_per_completed_request": 0.001696471064099726,
+      "usd_per_compliant_request": 0.0020593977096533987,
+      "usd_per_delivered_token": 2.1926764379131178e-05
+    }
+  },
+  {
+    "name": "seed-99-least_work",
+    "seed": 99,
+    "policy": "least_work",
+    "overrides": {},
+    "metrics": {
+      "completed": 974,
+      "completion_rate": 0.974,
+      "compliance_rate": 0.868,
+      "compliant": 868,
+      "conditional_itl_p95_ns": 15400006,
+      "conditional_ttft_p95_ns": 5124017344,
+      "delivered_tokens": 75493,
+      "feasible": false,
+      "itl_sample_count": 73234,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 974,
+        "Failed": 26
+      },
+      "rates": {
+        "completed_requests_per_second": 5.4903427752928,
+        "compliant_requests_per_second": 4.892831138556622,
+        "delivered_tokens_per_second": 425.5466603030589,
+        "window_end_ns": 177402402703,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6557557585613325,
+      "ttft_sample_count": 974,
+      "usd_per_completed_request": 0.0016999545775783702,
+      "usd_per_compliant_request": 0.0019075527172365582,
+      "usd_per_delivered_token": 2.1932573332114666e-05
+    }
+  },
+  {
+    "name": "seed-100-round_robin",
+    "seed": 100,
+    "policy": "round_robin",
+    "overrides": {},
+    "metrics": {
+      "completed": 972,
+      "completion_rate": 0.972,
+      "compliance_rate": 0.811,
+      "compliant": 811,
+      "conditional_itl_p95_ns": 14294877,
+      "conditional_ttft_p95_ns": 5127607969,
+      "delivered_tokens": 74114,
+      "feasible": false,
+      "itl_sample_count": 72020,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 972,
+        "Failed": 28
+      },
+      "rates": {
+        "completed_requests_per_second": 5.480585749007858,
+        "compliant_requests_per_second": 4.5727932535446225,
+        "delivered_tokens_per_second": 417.88902489914443,
+        "window_end_ns": 177353305744,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6552975202773332,
+      "ttft_sample_count": 972,
+      "usd_per_completed_request": 0.0017029809879396433,
+      "usd_per_compliant_request": 0.002041057361624332,
+      "usd_per_delivered_token": 2.2334478239972654e-05
+    }
+  },
+  {
+    "name": "seed-100-least_work",
+    "seed": 100,
+    "policy": "least_work",
+    "overrides": {},
+    "metrics": {
+      "completed": 964,
+      "completion_rate": 0.964,
+      "compliance_rate": 0.9,
+      "compliant": 900,
+      "conditional_itl_p95_ns": 14081022,
+      "conditional_ttft_p95_ns": 5120002937,
+      "delivered_tokens": 73299,
+      "feasible": false,
+      "itl_sample_count": 70684,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 964,
+        "Failed": 36
+      },
+      "rates": {
+        "completed_requests_per_second": 5.435478047369934,
+        "compliant_requests_per_second": 5.074616434266535,
+        "delivered_tokens_per_second": 413.2936777947809,
+        "window_end_ns": 177353305744,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6552975202773332,
+      "ttft_sample_count": 964,
+      "usd_per_completed_request": 0.0017171136102461964,
+      "usd_per_compliant_request": 0.0018392194669748147,
+      "usd_per_delivered_token": 2.2582811774749087e-05
+    }
+  },
+  {
+    "name": "fast-discovery",
+    "seed": 99,
+    "policy": "least_work",
+    "overrides": {
+      "discovery_ns": 0
+    },
+    "metrics": {
+      "completed": 974,
+      "completion_rate": 0.974,
+      "compliance_rate": 0.974,
+      "compliant": 974,
+      "conditional_itl_p95_ns": 14897435,
+      "conditional_ttft_p95_ns": 54730743,
+      "delivered_tokens": 75493,
+      "feasible": false,
+      "itl_sample_count": 73234,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 974,
+        "Failed": 26
+      },
+      "rates": {
+        "completed_requests_per_second": 5.649573235228765,
+        "compliant_requests_per_second": 5.649573235228765,
+        "delivered_tokens_per_second": 437.88832879581634,
+        "window_end_ns": 172402402703,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6090890918946672,
+      "ttft_sample_count": 974,
+      "usd_per_completed_request": 0.0016520421888035599,
+      "usd_per_compliant_request": 0.0016520421888035599,
+      "usd_per_delivered_token": 2.131441447411902e-05
+    }
+  },
+  {
+    "name": "slow-discovery",
+    "seed": 99,
+    "policy": "least_work",
+    "overrides": {
+      "discovery_ns": 10000000000
+    },
+    "metrics": {
+      "completed": 974,
+      "completion_rate": 0.974,
+      "compliance_rate": 0.717,
+      "compliant": 717,
+      "conditional_itl_p95_ns": 12835606,
+      "conditional_ttft_p95_ns": 10147776388,
+      "delivered_tokens": 75493,
+      "feasible": false,
+      "itl_sample_count": 73234,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 974,
+        "Failed": 26
+      },
+      "rates": {
+        "completed_requests_per_second": 5.33984194049205,
+        "compliant_requests_per_second": 3.930869272415606,
+        "delivered_tokens_per_second": 413.88160945951375,
+        "window_end_ns": 182402402703,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.7024224252279991,
+      "ttft_sample_count": 974,
+      "usd_per_completed_request": 0.0017478669663531818,
+      "usd_per_compliant_request": 0.0023743687939023696,
+      "usd_per_delivered_token": 2.255073219011033e-05
+    }
+  },
+  {
+    "name": "short-recovery",
+    "seed": 99,
+    "policy": "least_work",
+    "overrides": {
+      "availability_ns": 5000000000
+    },
+    "metrics": {
+      "completed": 974,
+      "completion_rate": 0.974,
+      "compliance_rate": 0.868,
+      "compliant": 868,
+      "conditional_itl_p95_ns": 15400006,
+      "conditional_ttft_p95_ns": 5124017344,
+      "delivered_tokens": 75493,
+      "feasible": false,
+      "itl_sample_count": 73234,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 974,
+        "Failed": 26
+      },
+      "rates": {
+        "completed_requests_per_second": 5.4903427752928,
+        "compliant_requests_per_second": 4.892831138556622,
+        "delivered_tokens_per_second": 425.5466603030589,
+        "window_end_ns": 177402402703,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6557557585613325,
+      "ttft_sample_count": 974,
+      "usd_per_completed_request": 0.0016999545775783702,
+      "usd_per_compliant_request": 0.0019075527172365582,
+      "usd_per_delivered_token": 2.1932573332114666e-05
+    }
+  },
+  {
+    "name": "long-recovery",
+    "seed": 99,
+    "policy": "least_work",
+    "overrides": {
+      "availability_ns": 120000000000
+    },
+    "metrics": {
+      "completed": 974,
+      "completion_rate": 0.974,
+      "compliance_rate": 0.868,
+      "compliant": 868,
+      "conditional_itl_p95_ns": 15400006,
+      "conditional_ttft_p95_ns": 5124017344,
+      "delivered_tokens": 75493,
+      "feasible": false,
+      "itl_sample_count": 73234,
+      "offered": 1000,
+      "outcomes": {
+        "Completed": 974,
+        "Failed": 26
+      },
+      "rates": {
+        "completed_requests_per_second": 5.4903427752928,
+        "compliant_requests_per_second": 4.892831138556622,
+        "delivered_tokens_per_second": 425.5466603030589,
+        "window_end_ns": 177402402703,
+        "window_start_ns": 0
+      },
+      "total_usd": 1.6557557585613325,
+      "ttft_sample_count": 974,
+      "usd_per_completed_request": 0.0016999545775783702,
+      "usd_per_compliant_request": 0.0019075527172365582,
+      "usd_per_delivered_token": 2.1932573332114666e-05
+    }
+  }
+]

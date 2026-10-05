@@ -108,7 +108,7 @@ function App() {
     [seed, setSeed] = useState(42),
     [q, setQ] = useState(10);
   const [settings, setSettings] = useState({
-    availability: 60,
+    availability: -1,
     init: 5,
     load: 30,
     discovery: 5,
@@ -134,7 +134,9 @@ function App() {
   const setSetting = (key: keyof typeof settings, value: number) =>
     setSettings((s) => ({ ...s, [key]: value }));
   const overrides = {
-    availability_ns: Math.round(settings.availability * 1e9),
+    ...(settings.availability >= 0
+      ? { availability_ns: Math.round(settings.availability * 1e9) }
+      : {}),
     init_ns: Math.round(settings.init * 1e9),
     load_ns: Math.round(settings.load * 1e9),
     discovery_ns: Math.round(settings.discovery * 1e9),
@@ -403,7 +405,7 @@ function App() {
               [
                 ["faultTime", "Fault time, seconds (−1 = midpoint)"],
                 ["faultCount", "Fault count (0 = preset)"],
-                ["availability", "Replacement wait, seconds"],
+                ["availability", "Replacement wait, seconds (−1 = preset)"],
                 ["init", "Initialization, seconds"],
                 ["load", "Model loading, seconds"],
                 ["discovery", "Discovery delay, seconds"],
@@ -447,7 +449,9 @@ function App() {
             Faults affect every replica on the selected physical nodes. Exact
             targets override count and preset for fixed-fleet runs. Search uses
             relative scenario targets; clear exact targets and fault count
-            first.
+            first. Preset replacement waits are 60 seconds, or 120 seconds for
+            correlated spot loss. An entered wait overrides every selected
+            scenario.
           </p>
         </details>
         <div className="metrics">
@@ -645,9 +649,9 @@ function App() {
           <section className="search">
             <h2>Find a fleet that passes the whole suite</h2>
             <p>
-              152 integer mixes × 2 policies × 5 scenarios. Fixed arrivals
-              across candidates. Minimize the highest scenario cost among fleets
-              passing every selected SLO.
+              152 integer mixes × 2 policies × {suite.length} scenarios. Fixed
+              arrivals across candidates. Minimize the highest scenario cost
+              among fleets passing every selected SLO.
             </p>
             <div className="suite">
               <p>Required feasibility suite</p>

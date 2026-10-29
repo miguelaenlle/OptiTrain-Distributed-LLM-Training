@@ -64,6 +64,9 @@ def test_suite_keeps_failures_continues_and_rebuilds_identically(tmp_path):
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(archive.extractfile(member).read())
     assert not (restored / "inputs/bin").exists()
+    moved = tmp_path / "moved-original"
+    root.rename(moved)
+    root = moved  # Recorded absolute paths now point to a directory that does not exist.
     assert regenerate(restored) == 1
     bundle(restored)
     assert before == {name: (restored / name).read_bytes() for name in before}

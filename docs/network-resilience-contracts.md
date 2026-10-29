@@ -69,7 +69,7 @@ such when comparing results.
 
 The controlled replay fixture emits one `x` per SSE event with a bounded
 runner-generated request ID and `timing-replay` model name. Budget **256 bytes
-per event**, a 13-byte completion marker, and **1,024 bytes** for HTTP headers
+per event**, a 14-byte completion marker, and **1,024 bytes** for HTTP headers
 and framing. Count actual response-body bytes and reject a fixture exceeding
 the declared body bound. These limits do not describe arbitrary model output.
 
@@ -77,7 +77,7 @@ For bandwidth `R`, frame bound `F=256`, pacing slice `Q=max(1,floor(R/20))`:
 
 - First output: profiled first-output time + `1000*(1024+F+Q)/R` +50ms.
 - Every output gap: maximum profiled gap + `1000*(F+Q)/R` +50ms.
-- Completion: profiled full service time + `1000*(1024+256*N+13)/R` +100ms.
+- Completion: profiled full service time + `1000*(1024+256*N+14)/R` +100ms.
 
 Round each up to 50ms. This allows wire serialization and slice alignment;
 it does not choose thresholds from observed percentiles. All original normal-SLO
@@ -90,13 +90,14 @@ retain their existing routing behavior. Primary selection stays round robin.
 
 | Setting | Default | Resilience recipe |
 |---|---:|---:|
-| `ROUTER_FIRST_OUTPUT_TIMEOUT_SECONDS` | 10s | 0.1s |
-| `ROUTER_STREAM_FAILURE_THRESHOLD` | 0 (disabled) | 1 |
+| `ROUTER_FIRST_OUTPUT_TIMEOUT_SECONDS` | 10s | 0.2s |
+| `ROUTER_STREAM_FAILURE_THRESHOLD` | 0 (disabled) | 2 |
 | `ROUTER_STREAM_COOLDOWN_SECONDS` | 1s | 1s |
 | `ROUTER_STREAM_LEAST_INFLIGHT_RETRIES` | false | true |
+| `ROUTER_STREAM_PROBE_WHEN_ALL_OPEN` | false | true |
 
 The original test recipe uses a 1s first-output timeout; the shipped replay
-profile predicts about 12ms. The 100ms setting is a replay experiment, **not**
+profile predicts about 12ms. The 200ms setting is a replay experiment, **not**
 a recommended timeout for real model serving. Production needs its own measured
 first-output distribution.
 
@@ -105,6 +106,10 @@ eligible worker, preserving round robin tie order. Attributable upstream
 transport/timeout/protocol/5xx failures open a worker's breaker. After cooldown,
 only one request probes that worker; success restores it, failure reopens it.
 Client cancellation and downstream write errors do not quarantine workers.
+If every worker is quarantined, allow at most one global foreground probe
+before cooldown expires. Success immediately restores that worker; failure
+remains subject to the normal deadline/attempt bound. This prevents a short
+request burst from keeping a recovered fleet unavailable for an entire cooldown.
 Health is keyed by worker ID **and address**; retired idle entries are removed.
 Concurrent successes cannot erase a newer failure. Attempts never revisit a
 worker or retry after output commitment.

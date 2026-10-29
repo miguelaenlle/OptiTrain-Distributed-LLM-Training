@@ -11,7 +11,12 @@ ROOT = Path(__file__).resolve().parents[3]
 DEFAULT = {
     "version": 1,
     "contract_version": 1,
-    "routing": {"failure_threshold": 0, "cooldown_s": 1.0, "least_inflight_retries": False},
+    "routing": {
+        "failure_threshold": 0,
+        "cooldown_s": 1.0,
+        "least_inflight_retries": False,
+        "probe_when_all_open": False,
+    },
     "execution": "local",
     "backend": "replay",
     "workers": 3,
@@ -234,6 +239,8 @@ def validate(cfg):
     positive(routing["cooldown_s"], "routing.cooldown_s", 300)
     if type(routing["least_inflight_retries"]) is not bool:
         raise ValueError("routing.least_inflight_retries must be boolean")
+    if type(routing["probe_when_all_open"]) is not bool:
+        raise ValueError("routing.probe_when_all_open must be boolean")
     for key, maximum in (
         ("workers", 64),
         ("concurrency", 4096),

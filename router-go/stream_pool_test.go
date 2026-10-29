@@ -70,3 +70,43 @@ func TestStreamClientFailureDoesNotOpenBreakerAndRetriesAvoidBusyWorker(t *testi
 		t.Fatal("retired worker health retained")
 	}
 }
+
+func TestStreamTotalQuarantineHasOnlyOneImmediateRecoveryProbe(t *testing.T) {
+	p := &streamPool{}
+	cfg := Settings{StreamFailureThreshold: 1, StreamCooldown: time.Hour}
+	w := []WorkerDoc{{WorkerID: "a", Addr: "a:1"}, {WorkerID: "b", Addr: "b:1"}}
+	now := time.Now()
+	for i := range w {
+		lease, ok := p.acquire(w, i, nil, cfg, now)
+		if !ok {
+			t.Fatal("could not establish fixture")
+		}
+		p.release(lease, -1, cfg, now)
+	}
+	cfg.StreamProbeWhenAllOpen = true
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	var probes []streamLease
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			lease, ok := p.acquire(w, 0, nil, cfg, now)
+			if ok {
+				mu.Lock()
+				probes = append(probes, lease)
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+	if len(probes) != 1 || !probes[0].emergency {
+		t.Fatalf("recovery probes: %+v", probes)
+	}
+	p.release(probes[0], 1, cfg, now)
+	lease, ok := p.acquire(w, 0, nil, cfg, now)
+	if !ok || lease.emergency || lease.probe {
+		t.Fatal("healthy worker not restored immediately")
+	}
+	p.release(lease, 1, cfg, now)
+}

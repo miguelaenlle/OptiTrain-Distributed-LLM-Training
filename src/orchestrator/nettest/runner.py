@@ -366,6 +366,7 @@ def run(cfg, *, color=False):
                 "ROUTER_STREAM_LEAST_INFLIGHT_RETRIES": str(
                     routing["least_inflight_retries"]
                 ).lower(),
+                "ROUTER_STREAM_PROBE_WHEN_ALL_OPEN": str(routing["probe_when_all_open"]).lower(),
             }
         )
         _process(router, "router", [host_binaries["router"]["router"]], env)

@@ -34,6 +34,7 @@ type Settings struct {
 	StreamFailureThreshold     int           // 0 disables streaming circuit breaker
 	StreamCooldown             time.Duration
 	StreamLeastInflightRetries bool          // primary choice remains round robin
+	StreamProbeWhenAllOpen     bool          // one global probe can bypass cooldown on total quarantine
 	ConnectTimeout             time.Duration // ROUTER_CONNECT_TIMEOUT_SECONDS
 	MaxAttempts                int           // ROUTER_MAX_ATTEMPTS
 	StatsPollInterval          time.Duration // ROUTER_STATS_POLL_SECONDS
@@ -67,6 +68,7 @@ func SettingsFromEnv(logger *log.Logger) Settings {
 		StreamFailureThreshold:     envInt(logger, "ROUTER_STREAM_FAILURE_THRESHOLD", 0),
 		StreamCooldown:             envSeconds(logger, "ROUTER_STREAM_COOLDOWN_SECONDS", 1),
 		StreamLeastInflightRetries: envBool(logger, "ROUTER_STREAM_LEAST_INFLIGHT_RETRIES", false),
+		StreamProbeWhenAllOpen:     envBool(logger, "ROUTER_STREAM_PROBE_WHEN_ALL_OPEN", false),
 		ConnectTimeout:             envSeconds(logger, "ROUTER_CONNECT_TIMEOUT_SECONDS", 3),
 		MaxAttempts:                envInt(logger, "ROUTER_MAX_ATTEMPTS", DefaultMaxAttempts),
 		StatsPollInterval:          envSeconds(logger, "ROUTER_STATS_POLL_SECONDS", 2),

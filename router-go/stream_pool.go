@@ -14,14 +14,16 @@ type streamHealth struct {
 	probing            bool
 }
 type streamPool struct {
-	mu      sync.Mutex
-	workers map[string]*streamHealth
+	mu         sync.Mutex
+	workers    map[string]*streamHealth
+	recovering bool
 }
 type streamLease struct {
-	worker WorkerDoc
-	key    string
-	epoch  uint64
-	probe  bool
+	worker    WorkerDoc
+	key       string
+	epoch     uint64
+	probe     bool
+	emergency bool
 }
 
 func streamKey(w WorkerDoc) string { return w.WorkerID + "\x00" + w.Addr }
@@ -66,6 +68,32 @@ func (p *streamPool) acquire(workers []WorkerDoc, start int, tried map[string]bo
 			break
 		}
 	}
+	if selected == nil && settings.StreamProbeWhenAllOpen && !p.recovering && len(workers) > 0 {
+		allOpen := true
+		for _, w := range workers {
+			h := p.workers[streamKey(w)]
+			if h == nil || h.openUntil.IsZero() || h.probing {
+				allOpen = false
+				break
+			}
+		}
+		if allOpen {
+			for _, w := range workers {
+				key := streamKey(w)
+				h := p.workers[key]
+				if tried[key] || h.inflight != 0 {
+					continue
+				}
+				if selected == nil || h.openUntil.Before(selected.openUntil) {
+					selected = h
+					chosen = streamLease{worker: w, key: key, epoch: h.epoch, probe: true, emergency: true}
+				}
+			}
+			if selected != nil {
+				p.recovering = true
+			}
+		}
+	}
 	if selected == nil {
 		return streamLease{}, false
 	}
@@ -83,6 +111,9 @@ func (p *streamPool) release(lease streamLease, outcome int, settings Settings, 
 	defer p.mu.Unlock()
 	h := p.workers[lease.key]
 	h.inflight--
+	if lease.emergency {
+		p.recovering = false
+	}
 	if h.epoch != lease.epoch || settings.StreamFailureThreshold <= 0 {
 		return !h.openUntil.IsZero()
 	}

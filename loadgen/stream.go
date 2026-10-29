@@ -30,7 +30,22 @@ type streamResult struct {
 	Complete  bool      `json:"complete"`
 	Error     string    `json:"error,omitempty"`
 	Dropped   bool      `json:"generator_drop"`
+	// SSE body bytes, excluding HTTP headers/framing. Audits the fixture's
+	// declared size bound; thresholds are frozen before measurement.
+	ResponseBytes int64 `json:"response_bytes"`
 }
+
+type countingReader struct {
+	io.Reader
+	count *int64
+}
+
+func (r countingReader) Read(p []byte) (int, error) {
+	n, err := r.Reader.Read(p)
+	*r.count += int64(n)
+	return n, err
+}
+
 type streamJob struct {
 	id, prompt string
 	scheduled  float64
@@ -149,7 +164,7 @@ func streamRequest(client *http.Client, cfg config, job streamJob, start time.Ti
 		row.Error = "expected text/event-stream"
 		return finish()
 	}
-	reader := bufio.NewReaderSize(resp.Body, 65536)
+	reader := bufio.NewReaderSize(countingReader{resp.Body, &row.ResponseBytes}, 65536)
 	previous := time.Time{}
 	for {
 		data, err := nextSSE(reader)

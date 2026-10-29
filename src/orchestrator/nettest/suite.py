@@ -89,7 +89,16 @@ def inspect_case(root, case):
         else []
     )
     attempts = [row for row in attempts if row["request_id"] in identities]
-    computed = evaluate(cfg, requests, stored["windows"], attempts, stored["evidence_errors"])
+    from .contracts import plan, read_evidence
+
+    evidence = read_evidence(folder) if cfg.get("contract_version") == 2 else None
+    if evidence and evidence["contract"]:
+        expected = plan(cfg, json.loads((root / "inputs/profile.json").read_text()))
+        if evidence["contract"] != expected:
+            raise ValueError("frozen contract differs from input-derived budget")
+    computed = evaluate(
+        cfg, requests, stored["windows"], attempts, stored["evidence_errors"], evidence
+    )
     computed["profile_kind"] = stored["profile_kind"]
     if computed != stored:
         raise ValueError(f"report disagrees with raw request/attempt evidence: {case['scenario']}")
@@ -104,6 +113,7 @@ def number(value):
 
 def render(index, reports):
     base = index["experiment"]
+    v2 = base.get("contract_version") == 2
     lines = [
         "# Network failure scenario report",
         "",
@@ -148,13 +158,44 @@ def render(index, reports):
         "Fault TTFT p95 ms | Fault gap p99 ms | Fault goodput RPS |",
         "|---|---|---:|---:|---:|---:|---:|",
     ]
+    if v2:
+        lines[2] = (
+            "Contract v2: resilience acceptance is separate from the unchanged normal serving "
+            "SLO and legacy acceptance checks. A resilience PASS never erases failed requests."
+        )
+        normal = next(i for i, line in enumerate(lines) if line.startswith("Normal SLO:"))
+        lines[normal] = lines[normal].replace(
+            "The same acceptance criteria apply to every scenario; "
+            "severe intentional outages can fail them.",
+            "Scenario-specific resilience contracts are shown below; "
+            "normal-SLO breaches remain visible.",
+        )
+        overview = lines.index("## Overview")
+        lines[overview:overview] = [
+            "Routing: first-output timeout "
+            f"{base['timeouts']['first_output_s']}s; "
+            f"options `{json.dumps(base['routing'], sort_keys=True)}`.",
+            "",
+        ]
+        header = next(i for i, line in enumerate(lines) if line.startswith("| Scenario |"))
+        lines[header] = lines[header].replace(
+            "| Verdict |", "| Resilience | Normal SLO | Legacy contract |"
+        )
+        lines[header + 1] = "|---|---|---|---|---:|---:|---:|---:|---:|"
     for case, report in zip(index["cases"], reports, strict=True):
         if report is None:
-            lines.append(f"| {case['scenario']} | NOT RUN | — | — | — | — | — |")
+            empty = "— | — | " if v2 else ""
+            lines.append(f"| {case['scenario']} | NOT RUN | {empty}— | — | — | — | — |")
             continue
         fault = report["phases"]["fault"]
+        extra = (
+            f"{report['serving_slo_verdict']} | {report['legacy_contract_verdict']} | "
+            if v2
+            else ""
+        )
         lines.append(
             f"| {case['scenario']} | {report['verdict']} | "
+            f"{extra}"
             f"{report['all_requests']['completed']}/{report['all_offered']} "
             f"| {number(fault['compliance_pct'])} | {number(fault['ttft_p95_ms'])} "
             f"| {number(fault['gap_p99_ms'])} | {number(fault['goodput_rps'])} |"
@@ -176,6 +217,14 @@ def render(index, reports):
             "| Metric | Healthy | Fault (change) | Recovery (change) |",
             "|---|---:|---:|---:|",
         ]
+        if v2:
+            lines[-2:-2] = [
+                f"Normal serving SLO: **{report['serving_slo_verdict']}**; "
+                f"legacy acceptance: **{report['legacy_contract_verdict']}**.",
+                "",
+                f"Frozen fault contract: `{json.dumps(report['contract'], sort_keys=True)}`",
+                "",
+            ]
         for metric in (
             "completion_pct",
             "compliance_pct",
@@ -212,7 +261,7 @@ def render(index, reports):
         if failed:
             lines.append("")
             for check in failed:
-                operator = ">=" if check["operator"] == "ge" else "<="
+                operator = {"ge": ">=", "le": "<=", "is": "expected"}[check["operator"]]
                 lines.append(
                     f"- {check['name']}: {number(check['actual'])}; "
                     f"required {operator} {number(check['limit'])}."

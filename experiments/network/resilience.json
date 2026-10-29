@@ -1,0 +1,63 @@
+{
+  "artifacts": {},
+  "backend": "replay",
+  "concurrency": 32,
+  "criteria": {
+    "completion_pct": 99.0,
+    "fault_added_ttft_ms": 350.0,
+    "fault_compliance_pct": 65.0,
+    "fault_gap_ms": 50.0,
+    "fault_gap_ratio": 1.25,
+    "fault_goodput_ratio": 0.65,
+    "fault_max_drop_pp": 35.0,
+    "fault_ttft_ms": 600.0,
+    "healthy_compliance_pct": 99.0,
+    "recovery_compliance_pct": 99.0,
+    "recovery_goodput_ratio": 0.95,
+    "recovery_latency_ratio": 1.1,
+    "recovery_min_requests": 20,
+    "recovery_start_s": 5.0,
+    "recovery_window_s": 5.0
+  },
+  "direct": false,
+  "endpoints": [],
+  "execution": "local",
+  "fault": null,
+  "hosts": {},
+  "input_tokens": 512,
+  "llama_server": "llama-server",
+  "max_runtime_s": 600,
+  "model": "",
+  "model_file": "",
+  "output": "",
+  "output_tokens": 16,
+  "phases": {
+    "fault_s": 30.0,
+    "healthy_s": 30.0,
+    "recovery_s": 60.0
+  },
+  "ports": {},
+  "profile": "netfault/profiles/h100-llama31-8b.json",
+  "prompt": "Explain why network timeouts matter in one short paragraph.",
+  "rps": 6.0,
+  "scenario": "baseline",
+  "slo": {
+    "gap_ms": 100.0,
+    "total_ms": 2000.0,
+    "ttft_ms": 250.0
+  },
+  "timeouts": {
+    "connect_s": 0.5,
+    "first_output_s": 0.1,
+    "idle_s": 1.0,
+    "request_s": 2.0
+  },
+  "version": 1,
+  "workers": 3,
+  "contract_version": 2,
+  "routing": {
+    "failure_threshold": 1,
+    "cooldown_s": 1.0,
+    "least_inflight_retries": true
+  }
+}

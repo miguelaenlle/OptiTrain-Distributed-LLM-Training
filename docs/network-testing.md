@@ -1,5 +1,9 @@
 # Network resilience tests
 
+For scenario-specific failure-handling contracts and opt-in streaming failover,
+see [resilience contracts](network-resilience-contracts.md). The original recipe
+and recorded SLO failures remain available below.
+
 **Problem:** worker-kill tests do not show how slow, stalled or broken client
 and worker connections affect streamed inference.
 

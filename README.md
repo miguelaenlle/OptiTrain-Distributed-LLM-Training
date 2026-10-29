@@ -136,6 +136,8 @@ Test the actual Go serving path through a **C++20 fault-injection proxy**:
 PYTHONPATH=src python -m orchestrator fleet net-test
 # All 14 presets, fixed inputs, combined report (~28 minutes plus build).
 PYTHONPATH=src python -m orchestrator.nettest.suite
+# Scenario-specific resilience contracts and opt-in streaming failover settings.
+PYTHONPATH=src python -m orchestrator.nettest.suite --config experiments/network/resilience.json --output .fleet/resilience-report
 # Existing EC2/Linux hosts use the same command with one experiment config.
 PYTHONPATH=src python -m orchestrator fleet net-test --config experiments/network/ec2.yaml
 ```
@@ -143,5 +145,8 @@ PYTHONPATH=src python -m orchestrator fleet net-test --config experiments/networ
 The default uses **prepared H100 timing estimates**, not live GPU inference.
 Synthetic fixtures are included for CI. Failed SLOs remain failures; temporary
 degradation allowances are reported separately.
+The resilience recipe reports **fault handling**, **normal serving SLOs**, and
+the **original acceptance contract** separately; an expected outage never
+becomes successful inference. See [contracts and routing](./docs/network-resilience-contracts.md).
 [Setup, real-model modes, fault scenarios and acceptance criteria](./docs/network-testing.md).
 [Recorded findings for all 14 presets and offline reproduction](./experiments/network/results/README.md).

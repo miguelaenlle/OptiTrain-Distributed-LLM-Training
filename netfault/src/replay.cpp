@@ -96,6 +96,7 @@ public:
     }
   }
   const std::string &id() const { return id_; }
+  int quiet_ms() const { return quiet_ms_; }
 
 private:
   void accept() {
@@ -108,6 +109,24 @@ private:
                                   {"worker", id_},
                                   {"active", active_.size()},
                                   {"waiting", queue_.size()}});
+                return;
+              }
+              // Explicit fixture control: introduce one real quiet interval
+              // after the first output, so an idle-expiry test exercises
+              // expiry.
+              if (method == "POST" && path == "/replay/quiet") {
+                if (!data.is_object() || !data.contains("quiet_ms") ||
+                    !data["quiet_ms"].is_number_integer() ||
+                    data["quiet_ms"] < 0 || data["quiet_ms"] > 60000) {
+                  http->reply(400, {{"error", "quiet_ms must be 0..60000"}});
+                  return;
+                }
+                int ms = data["quiet_ms"];
+                quiet_ms_ = ms;
+                events_.emit({{"event", "quiet_changed"},
+                              {"worker", id_},
+                              {"quiet_ms", ms}});
+                http->reply(200, {{"quiet_ms", ms}});
                 return;
               }
               if (method != "POST" || path != "/v1/completions") {
@@ -157,6 +176,7 @@ private:
   std::string id_, model_;
   std::vector<Sample> samples_;
   int maximum_;
+  int quiet_ms_ = 0;
   std::deque<std::shared_ptr<Generation>> queue_;
   std::unordered_map<Generation *, std::shared_ptr<Generation>> active_;
   std::uint64_t next_id_ = 0;
@@ -235,6 +255,8 @@ void Generation::produce() {
       self->next_ += std::chrono::duration_cast<Clock::duration>(
           std::chrono::duration<double, std::milli>(
               self->sample_.gaps[static_cast<std::size_t>(self->index_ - 1)]));
+      if (self->index_ == 1)
+        self->next_ += Millis(self->worker_.quiet_ms());
       self->produce();
     }
     self->write();

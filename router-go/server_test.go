@@ -472,6 +472,7 @@ func TestSettingsFromEnv(t *testing.T) {
 		"REQUEST_TIMEOUT_SECONDS", "ROUTER_CONNECT_TIMEOUT_SECONDS", "ROUTER_MAX_ATTEMPTS",
 		"ROUTER_STATS_POLL_SECONDS", "ROUTER_UPSTREAM_KEEPALIVE", "ROUTER_SHUTDOWN_TIMEOUT_SECONDS",
 		"ROUTER_FIRST_OUTPUT_TIMEOUT_SECONDS", "ROUTER_STREAM_IDLE_TIMEOUT_SECONDS",
+		"ROUTER_STREAM_FAILURE_THRESHOLD", "ROUTER_STREAM_COOLDOWN_SECONDS", "ROUTER_STREAM_LEAST_INFLIGHT_RETRIES",
 	} {
 		t.Setenv(key, "")
 	}
@@ -509,7 +510,8 @@ func TestSettingsFromEnv(t *testing.T) {
 		PollInterval: 500 * time.Millisecond, TTLSeconds: 30,
 		RequestTimeout: 120 * time.Second, ConnectTimeout: time.Second,
 		FirstOutputTimeout: 10 * time.Second, StreamIdleTimeout: 10 * time.Second,
-		MaxAttempts: 5, StatsPollInterval: 4 * time.Second,
+		StreamCooldown: time.Second,
+		MaxAttempts:    5, StatsPollInterval: 4 * time.Second,
 		UpstreamKeepAlive: true, ShutdownTimeout: 10 * time.Second,
 	}
 	if got != want {

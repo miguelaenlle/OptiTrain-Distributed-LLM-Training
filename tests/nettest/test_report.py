@@ -6,6 +6,7 @@ import json
 import pytest
 
 from orchestrator.nettest.config import DEFAULT, load
+from orchestrator.nettest.contracts import plan
 from orchestrator.nettest.report import compliant, delta, evaluate, percentile, summarize
 
 
@@ -62,6 +63,57 @@ def test_slo_failure_is_not_hidden_by_permissive_fault_allowance():
     assert result["verdict"] == "FAIL"
     assert result["normal_slo_breached_during_fault"]
     assert result["all_requests"]["compliant"] == 2
+
+
+def test_cancellation_contract_keeps_slo_failure_and_requires_worker_evidence():
+    cfg = load(scenario="client-disconnect")
+    cfg["contract_version"] = 2
+    cfg["criteria"].update(recovery_min_requests=1, recovery_window_s=0.5)
+    rows = [row("h", dispatch=0), row("f", complete=False, dispatch=1), row("r", dispatch=2)]
+    for r in rows:
+        r.update(output_events=16, unix_ns=1000000000)
+    rows[1].update(error="client_canceled", output_events=5, latency_ms=100)
+    events = []
+    for r in rows:
+        events += [
+            {"event": "generation_started", "request_id": r["request_id"], "worker": "w"},
+            {
+                "event": "generation_completed" if r["complete"] else "generation_canceled",
+                "request_id": r["request_id"],
+                "worker": "w",
+                "unix_ms": 1100,
+                "monotonic_ms": 100,
+            },
+        ]
+    evidence = {
+        "contract": {"version": 2},
+        "worker_events": events,
+        "drained": {"router_inflight": 0, "worker_outstanding": 0, "proxy_connections": 0},
+    }
+    attempts = [{"request_id": r["request_id"], "attempt": 1, "committed": True} for r in rows]
+    windows = {"healthy": (0, 1), "fault": (1, 2), "recovery": (2, 3)}
+    result = evaluate(cfg, rows, windows, attempts, resilience_evidence=evidence)
+    assert result["verdict"] == "PASS"
+    assert result["serving_slo_verdict"] == result["legacy_contract_verdict"] == "FAIL"
+    assert result["phases"]["fault"]["completion_pct"] == 0
+    # A passing cancellation label cannot replace evidence of released work.
+    evidence["worker_events"] = [e for e in events if e["event"] != "generation_canceled"]
+    assert evaluate(cfg, rows, windows, attempts, resilience_evidence=evidence)["verdict"] == "FAIL"
+
+
+def test_degraded_bandwidth_budget_comes_from_inputs_and_accounts_for_every_gap():
+    cfg = load(scenario="slow-client-download")
+    profile = {
+        "samples": [
+            {"input_tokens": 512, "output_tokens": 16, "first_output_ms": 10, "gaps_ms": [6] * 15}
+        ]
+    }
+    budget = plan(cfg, profile)
+    assert budget["fault_slo"] == {"ttft_ms": 550, "gap_ms": 200, "total_ms": 1950}
+    cfg["fault"]["rate_bytes_s"] *= 2
+    faster = plan(cfg, profile)
+    assert faster["fault_slo"]["total_ms"] < budget["fault_slo"]["total_ms"]
+    assert not compliant({**row(), "gaps_ms": [20, 201]}, budget["fault_slo"])
 
 
 @pytest.mark.parametrize(

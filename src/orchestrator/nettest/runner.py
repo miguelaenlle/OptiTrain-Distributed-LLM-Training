@@ -192,6 +192,12 @@ def run(cfg, *, color=False):
             profile_kind = profile["kind"]
             manifest["profile_sha256"] = hashlib.sha256(profile_path.read_bytes()).hexdigest()
             write_json(workers, "profile.json", profile)
+            if cfg.get("contract_version") == 2:
+                from .contracts import plan
+
+                (output / "contract.json").write_text(
+                    json.dumps(plan(cfg, profile), indent=2) + "\n"
+                )
         if cfg["backend"] == "cpu-model":
             if cfg["execution"] != "local":
                 raise ValueError(
@@ -352,6 +358,16 @@ def run(cfg, *, color=False):
             "ROUTER_MAX_ATTEMPTS": "3",
             "ROUTER_ATTEMPTS_FILE": str(router.root / "attempts.jsonl"),
         }
+        routing = cfg.get("routing", config.DEFAULT["routing"])
+        env.update(
+            {
+                "ROUTER_STREAM_FAILURE_THRESHOLD": str(routing["failure_threshold"]),
+                "ROUTER_STREAM_COOLDOWN_SECONDS": str(routing["cooldown_s"]),
+                "ROUTER_STREAM_LEAST_INFLIGHT_RETRIES": str(
+                    routing["least_inflight_retries"]
+                ).lower(),
+            }
+        )
         _process(router, "router", [host_binaries["router"]["router"]], env)
         wait_for(
             lambda: (
@@ -539,8 +555,22 @@ def run(cfg, *, color=False):
             events.append({"method": method, "targets": targets, "send_s": begin, "ack_s": end})
             return begin, end
 
+        def quiet(ms):
+            target = cfg["fault"]["target"]
+            index = int(target.removeprefix("worker-"))
+            workers.call(
+                {
+                    "op": "http",
+                    "url": f"http://127.0.0.1:{worker_ports[index * 2]}/replay/quiet",
+                    "method": "POST",
+                    "body": {"quiet_ms": ms},
+                }
+            )
+
         print("Healthy phase started", flush=True)
         until(healthy_end)
+        if cfg.get("contract_version") == 2 and cfg["scenario"] == "idle-expiry":
+            quiet(150)
         begin, ack = change("POST", cfg["fault"]) if cfg["fault"] else (healthy_end, healthy_end)
         # A fixed, declared deadline guard prevents in-flight requests at
         # activation from contaminating the unexposed healthy reference.
@@ -558,8 +588,15 @@ def run(cfg, *, color=False):
                     change("POST", cfg["fault"])
         until(fault_end)
         remove_begin, remove_ack = change("DELETE")
+        if cfg.get("contract_version") == 2 and cfg["scenario"] == "idle-expiry":
+            quiet(0)
         windows["fault"] = (ack + uncertainty, max(ack + uncertainty, remove_begin - uncertainty))
         windows["recovery"] = (remove_ack + uncertainty, total)
+        if not cfg["fault"]:
+            # Cancellation is controlled by the client's exact dispatch window,
+            # not a proxy-rule acknowledgment. No rule changes in baseline.
+            windows["fault"] = (healthy_end, fault_end)
+            windows["recovery"] = (fault_end, total)
         print("Recovery phase started", flush=True)
         until(total)
         code = wait_for(
@@ -573,6 +610,31 @@ def run(cfg, *, color=False):
         )["code"]
         if code not in (0, 1):
             evidence_errors.append(f"load generator exited {code}")
+        if cfg.get("contract_version") == 2:
+            # Observe quiescence before stopping processes, so cleanup cannot
+            # manufacture evidence that abandoned work was released correctly.
+            snapshot = {}
+            deadline = time.monotonic() + 1
+            while time.monotonic() < deadline:
+                status = router.call(
+                    {"op": "http", "url": f"http://127.0.0.1:{router_port}/fleet/metrics"}
+                )
+                worker_status = [
+                    workers.call(
+                        {"op": "http", "url": f"http://127.0.0.1:{worker_ports[i * 2]}/stats"}
+                    )
+                    for i in range(cfg["workers"])
+                ]
+                snapshot = {
+                    "router_inflight": status["router"]["in_flight"],
+                    "worker_outstanding": sum(w["active"] + w["waiting"] for w in worker_status),
+                    "proxy_connections": _management(router, control_router)["connections"]
+                    + _management(workers, control_workers)["connections"],
+                }
+                if all(value == 0 for value in snapshot.values()):
+                    break
+                time.sleep(0.02)
+            (output / "drained.json").write_text(json.dumps(snapshot, indent=2) + "\n")
         rows = jsonl(read_bytes(client, "requests.jsonl"))
         measured_ids = {row["request_id"] for row in rows}
         attempts = [
@@ -660,7 +722,16 @@ def run(cfg, *, color=False):
             ]
     except ValueError as exc:
         evidence_errors.append(f"invalid partial JSONL evidence: {exc}")
-    report = evaluate(cfg, rows, windows, attempts, evidence_errors)
+    from .contracts import read_evidence
+
+    report = evaluate(
+        cfg,
+        rows,
+        windows,
+        attempts,
+        evidence_errors,
+        read_evidence(output) if cfg.get("contract_version") == 2 else None,
+    )
     report["profile_kind"] = profile_kind
     manifest["profile_kind"] = profile_kind
     manifest["elapsed_s"] = time.monotonic() - started

@@ -43,7 +43,7 @@ def summarize(rows, duration, slo):
     }
 
 
-def evaluate(cfg, rows, windows, attempts, evidence_errors=()):
+def evaluate(cfg, rows, windows, attempts, evidence_errors=(), resilience_evidence=None):
     slo, criteria = cfg["slo"], cfg["criteria"]
     stats = {
         name: summarize([r for r in rows if lo <= r["dispatch_s"] < hi], hi - lo, slo)
@@ -188,7 +188,7 @@ def evaluate(cfg, rows, windows, attempts, evidence_errors=()):
     verdict = (
         "INVALID" if errors else "PASS" if all(c["verdict"] == "PASS" for c in checks) else "FAIL"
     )
-    return {
+    report = {
         "verdict": verdict,
         "evidence_errors": errors,
         "phases": stats,
@@ -210,6 +210,11 @@ def evaluate(cfg, rows, windows, attempts, evidence_errors=()):
         "percentile_method": "nearest-rank",
         "attempts": len(attempts),
     }
+    if cfg.get("contract_version", 1) == 2:
+        from .contracts import apply
+
+        return apply(report, cfg, rows, attempts, resilience_evidence or {})
+    return report
 
 
 def delta(value, reference, rate=False):
@@ -236,6 +241,14 @@ def render(report, cfg, color=False):
         "boundary requests remain in transition/all-offered totals.",
         "Metric                     Healthy            Fault (+change)       Recovery (+change)",
     ]
+    if report.get("contract_version") == 2:
+        lines.insert(
+            1,
+            f"Resilience: {report['verdict']} | "
+            f"Normal serving SLO: {report['serving_slo_verdict']} | "
+            f"Legacy acceptance: {report['legacy_contract_verdict']}",
+        )
+        lines.insert(2, f"Fault contract v2: {report['contract']}")
     healthy = report["phases"]["healthy"]
     for key in (
         "offered",
@@ -266,7 +279,7 @@ def render(report, cfg, color=False):
             "fault allowance is evaluated separately."
         )
     for check in report["checks"]:
-        op = ">=" if check["operator"] == "ge" else "<="
+        op = {"ge": ">=", "le": "<=", "is": "expected"}[check["operator"]]
         lines.append(
             f"{label(check['verdict'])} {check['name']}: {check['actual']} {op} {check['limit']}"
         )

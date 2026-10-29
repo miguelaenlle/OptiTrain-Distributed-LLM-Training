@@ -10,6 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT = {
     "version": 1,
+    "contract_version": 1,
+    "routing": {"failure_threshold": 0, "cooldown_s": 1.0, "least_inflight_retries": False},
     "execution": "local",
     "backend": "replay",
     "workers": 3,
@@ -217,6 +219,21 @@ def validate(cfg):
         or cfg["backend"] not in ("replay", "cpu-model", "external")
     ):
         raise ValueError("unsupported config version, execution or backend")
+    if cfg.get("contract_version", 1) not in (1, 2):
+        raise ValueError("contract_version must be 1 or 2")
+    if cfg.get("contract_version") == 2 and (
+        cfg["execution"] != "local" or cfg["backend"] != "replay" or cfg["direct"]
+    ):
+        raise ValueError("contract v2 currently requires local replay through both proxies")
+    routing = cfg.get("routing", DEFAULT["routing"])
+    if (
+        type(routing["failure_threshold"]) is not int
+        or not 0 <= routing["failure_threshold"] <= 100
+    ):
+        raise ValueError("routing.failure_threshold must be an integer in 0..100")
+    positive(routing["cooldown_s"], "routing.cooldown_s", 300)
+    if type(routing["least_inflight_retries"]) is not bool:
+        raise ValueError("routing.least_inflight_retries must be boolean")
     for key, maximum in (
         ("workers", 64),
         ("concurrency", 4096),

@@ -78,3 +78,36 @@ def test_suite_keeps_failures_continues_and_rebuilds_identically(tmp_path):
     with pytest.raises(ValueError, match="changed evidence"):
         regenerate(root)
     assert (root / "report.md").read_bytes() == before["report.md"]
+
+
+def test_resilience_suite_cancellation_idle_expiry_and_offline_evidence(tmp_path):
+    cfg = load(ROOT / "experiments/network/resilience.json", scenario="baseline")
+    # Enough samples for the unchanged 95% recovery-goodput comparison;
+    # a four-second recovery is dominated by one request at the phase boundary.
+    cfg.update(phases={"healthy_s": 6, "fault_s": 4, "recovery_s": 10})
+    cfg["criteria"].update(recovery_window_s=1, recovery_min_requests=4)
+    root = tmp_path / "resilience"
+    assert (
+        execute(cfg, root, ["client-disconnect", "idle-expiry", "baseline"], skip_build=True) == 0
+    )
+    summary = json.loads((root / "summary.json").read_text())
+    reports = [c["report"] for c in summary["cases"]]
+    assert [r["verdict"] for r in reports] == ["PASS"] * 3
+    assert reports[0]["serving_slo_verdict"] == "FAIL"
+    assert reports[0]["phases"]["fault"]["completion_pct"] == 0
+    idle_events = [
+        json.loads(line)
+        for line in (root / "02-idle-expiry/worker-proxy-events.jsonl").read_text().splitlines()
+    ]
+    assert any(e.get("reason") == "idle_expiry" for e in idle_events)
+    before = (root / "report.md").read_bytes(), (root / "summary.json").read_bytes()
+    assert regenerate(root) == 0
+    assert before == ((root / "report.md").read_bytes(), (root / "summary.json").read_bytes())
+    # Even a self-consistent report must not substitute a measured threshold
+    # for the budget derived before traffic from the frozen inputs.
+    contract = root / "01-client-disconnect/contract.json"
+    data = json.loads(contract.read_text())
+    data["cancellation_ms"] = 999999
+    contract.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="changed evidence"):
+        regenerate(root)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,6 +13,29 @@ import (
 )
 
 const outputFrame = "data: {\"choices\":[{\"text\":\"x\"}]}\n\n"
+
+type brokenStreamWriter struct{ http.ResponseWriter }
+
+func (w brokenStreamWriter) Write([]byte) (int, error) {
+	return 0, errors.New("downstream disconnected")
+}
+
+func TestStreamDownstreamFailureDoesNotQuarantineWorker(t *testing.T) {
+	worker := streamWorker(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		io.WriteString(w, outputFrame+"data: [DONE]\n\n")
+	})
+	defer worker.Close()
+	docs := []WorkerDoc{{WorkerID: "healthy", Addr: strings.TrimPrefix(worker.URL, "http://")}}
+	s := newTestServer(t, docs, nil)
+	s.settings.StreamFailureThreshold = 1
+	s.settings.StreamCooldown = time.Second
+	s.handleStream(brokenStreamWriter{httptest.NewRecorder()}, httptest.NewRequest("POST", "/v1/completions", nil), []byte(`{"stream":true}`), docs, 0)
+	h := s.streamPool.workers[streamKey(docs[0])]
+	if h.inflight != 0 || !h.openUntil.IsZero() || h.failures != 0 {
+		t.Fatalf("downstream failure affected worker: %+v", h)
+	}
+}
 
 func streamWorker(handler http.HandlerFunc) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

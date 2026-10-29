@@ -27,6 +27,9 @@ type streamFrame struct {
 	err          error
 }
 
+// Downstream failures must never mark a healthy worker unhealthy.
+type downstreamStreamError struct{ error }
+
 func readStreamFrame(reader *bufio.Reader) streamFrame {
 	var wire, payload strings.Builder
 	for {
@@ -81,14 +84,28 @@ func (s *Server) handleStream(w http.ResponseWriter, r *http.Request, body []byt
 	if maximum <= 0 {
 		maximum = DefaultMaxAttempts
 	}
+	tried := make(map[string]bool)
 	for k := 0; k < len(workers) && k < maximum; k++ {
 		if r.Context().Err() != nil {
 			break
 		}
-		worker := workers[(start+k)%len(workers)]
+		lease, ok := s.streamPool.acquire(workers, start, tried, s.settings, time.Now())
+		if !ok {
+			break
+		}
+		worker := lease.worker
+		tried[lease.key] = true
 		result.Attempts++
 		committed, status, err := s.streamAttempt(w, r, body, worker)
-		s.streamAudit(r, worker, result.Attempts, status, committed, err)
+		outcome := 1
+		var downstream downstreamStreamError
+		if r.Context().Err() != nil || errors.As(err, &downstream) {
+			outcome = 0
+		} else if err != nil || status >= 500 {
+			outcome = -1
+		}
+		open := s.streamPool.release(lease, outcome, s.settings, time.Now())
+		s.streamAudit(r, worker, result.Attempts, status, committed, open, err)
 		if err != nil {
 			s.metrics.RecordAttempt(worker.WorkerID, AttemptTransport)
 			result.Detail = fmt.Sprintf("%s: %v", worker.WorkerID, err)
@@ -153,7 +170,10 @@ func (s *Server) streamAttempt(w http.ResponseWriter, r *http.Request, body []by
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(resp.StatusCode)
 		_, err = w.Write(data)
-		return true, resp.StatusCode, err
+		if err != nil {
+			return true, resp.StatusCode, downstreamStreamError{err}
+		}
+		return true, resp.StatusCode, nil
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return false, resp.StatusCode, nil
@@ -203,10 +223,10 @@ func (s *Server) streamAttempt(w http.ResponseWriter, r *http.Request, body []by
 			}
 			_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(idle))
 			if _, err = w.Write(frame.wire); err != nil {
-				return committed, 0, err
+				return committed, 0, downstreamStreamError{err}
 			}
 			if err = http.NewResponseController(w).Flush(); err != nil {
-				return committed, 0, err
+				return committed, 0, downstreamStreamError{err}
 			}
 			if frame.output {
 				timer.Reset(idle)
@@ -217,12 +237,13 @@ func (s *Server) streamAttempt(w http.ResponseWriter, r *http.Request, body []by
 		}
 	}
 }
-func (s *Server) streamAudit(r *http.Request, worker WorkerDoc, attempt, status int, committed bool, err error) {
+func (s *Server) streamAudit(r *http.Request, worker WorkerDoc, attempt, status int, committed, breakerOpen bool, err error) {
 	path := os.Getenv("ROUTER_ATTEMPTS_FILE")
 	if path == "" {
 		return
 	}
 	record := map[string]any{"request_id": r.Header.Get("X-Request-ID"), "worker": worker.WorkerID, "attempt": attempt, "status": status, "committed": committed, "unix_ns": time.Now().UnixNano()}
+	record["breaker_open"] = breakerOpen
 	if err != nil {
 		record["error"] = err.Error()
 	}

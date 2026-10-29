@@ -116,6 +116,10 @@ def apply(report, cfg, rows, attempts, evidence):
             scenario in special
             and c["name"].startswith("fault:")
             and c["name"] != "fault: offered requests"
+            and (
+                scenario not in ("worker-truncate", "idle-expiry")
+                or c["name"] == "fault: completion %"
+            )
         )
     ]
 

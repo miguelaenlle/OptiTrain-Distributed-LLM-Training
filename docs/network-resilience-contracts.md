@@ -47,8 +47,8 @@ to that setup. External real-model/SSH runs retain the original evaluator.
 | Slow download | ≥99% completion and compliance with TTFT ≤550ms, every gap ≤200ms, total ≤1950ms for the shipped profile and 3,000 B/s cap. Formulas below determine these values before measurement. |
 | Client disconnect | Each fault-cohort request cancels after five outputs; the worker acknowledges cancellation within 500ms and produces nothing after acknowledgment. No completion is credited. |
 | Fleet stall; slow upload | Fault causes real request failures; every failure is explicit and all requests obey the 2s deadline +100ms observation allowance. Completion/normal-SLO loss stays visible. |
-| Worker truncation | A cutoff actually closes a connection; a partial stream is reported incomplete; never silently restart committed output. With the breaker enabled, attributable upstream failures must open it. |
-| Idle expiry | Add a 150ms quiet interval after the first replay output during the fault phase. The 50ms idle rule must actually close a connection and the partial stream must be reported incomplete. |
+| Worker truncation | A cutoff actually closes a connection; a partial stream is reported incomplete; never silently restart committed output. With the breaker enabled, attributable upstream failures must open it. Retain the original ≥65% fault-SLO/goodput and latency checks for service on surviving workers. |
+| Idle expiry | Add a 150ms quiet interval after the first replay output during the fault phase. The 50ms idle rule must actually close a connection and the partial stream must be reported incomplete. Retain the original ≥65% fault-SLO/goodput and latency checks for surviving workers. |
 
 Every scenario also requires zero generator drops, at most three upstream
 attempts, no retries after committed output, requested output count on completed

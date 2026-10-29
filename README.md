@@ -149,4 +149,5 @@ The resilience recipe reports **fault handling**, **normal serving SLOs**, and
 the **original acceptance contract** separately; an expected outage never
 becomes successful inference. See [contracts and routing](./docs/network-resilience-contracts.md).
 [Setup, real-model modes, fault scenarios and acceptance criteria](./docs/network-testing.md).
-[Recorded findings for all 14 presets and offline reproduction](./experiments/network/results/README.md).
+[Original preset findings](./experiments/network/results/README.md) ·
+[Resilience results, before/after comparison and offline reproduction](./experiments/network/resilience-results/README.md).

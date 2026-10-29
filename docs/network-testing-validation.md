@@ -7,6 +7,12 @@ JSONL, fault events and logs under `.fleet/net-tests/`.
 
 ## Checks executed
 
+These initial implementation checks preceded the complete preset matrix. The
+current automated suite has **37 Python cases** after adding matrix/offline
+regeneration coverage and an active-traffic idle-timer regression; Linux CI
+passed them with sanitizers. See the [complete scenario findings](../experiments/network/results/README.md)
+and its checksummed, portable evidence bundle for the current configuration.
+
 | Check | Result |
 |---|---|
 | Native C++ CTest | PASS |
@@ -90,6 +96,7 @@ acceptance budget was loosened to address these defects.
 | `loadgen/stream_test.go` | Actual SSE timing, incomplete streams, event versus read-chunk parsing, buffered body latency, bounded capacity/all-offered accounting, cancellation window |
 | `tests/nettest/test_report.py` | Failure/drop denominators, per-gap SLOs, explicit percentiles, missing evidence, failed contracts, invalid inputs |
 | `tests/nettest/test_runtime.py` | Controller-loss cleanup, readable evidence after stop, evidence path containment |
+| `tests/nettest/test_suite.py` | A failed scenario does not stop the next one; Markdown/JSON/archive regeneration is identical; extracted evidence works without binaries or original paths; changed evidence is rejected |
 | `tests/nettest/test_profile.py` | Prefill counted once, growing decode context, bad estimates fail without substitution |
 | `tests/nettest/test_end_to_end.py` | All actual components and persisted evidence; strict SLO fails with an injected delay |
 

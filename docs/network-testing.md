@@ -37,6 +37,58 @@ measurement. It offers **6 requests/s** for **30s healthy → 30s worker-1 respo
 delay (+300ms) → 60s after removal**. Requests use the same workload throughout.
 No automatic calibration changes the declared rate or budgets.
 
+### Reproduce the complete scenario report
+
+From the repository root, run:
+
+```sh
+PYTHONPATH=src python -m orchestrator.nettest.suite
+```
+
+This builds once, freezes copies of all three executables and the profile, then
+runs all **14 presets sequentially** with fresh processes. The pinned
+`experiments/network/report.json` recipe keeps the current three-worker,
+6 RPS, 30/30/60s workload and unchanged acceptance criteria. Seed is 42;
+scenario order is fixed. Allow **about 28 minutes plus compilation**. No GPU,
+model download, Docker or cloud access is needed for this command.
+
+Read `.fleet/network-report/report.md`. The same folder contains machine-readable
+`summary.json`, SHA-256/source/platform records in `suite.json`, per-scenario
+logs and raw evidence, and a portable `evidence.tar.gz` (without binaries or
+weights). The report is updated after each scenario. Ctrl-C retains a partial
+report; unexecuted scenarios are explicitly NOT RUN.
+
+**A failed scenario does not stop the suite.** Exit 0 means all scenarios passed;
+1 means at least one valid run failed its SLO contract; 2 means invalid/incomplete
+evidence or execution; 130 means interrupted. Severe failures are expected to
+miss the default availability contract. The runner never relaxes thresholds.
+Use a new `--output` directory for another run; existing evidence is not replaced.
+
+```sh
+# One preset, using the same pinned recipe and seed:
+PYTHONPATH=src python -m orchestrator.nettest.suite \
+  --scenarios worker-stall --output .fleet/worker-stall-report
+
+# Offline: rebuild the recorded report, without traffic or compilation.
+mkdir -p .fleet/recorded-network-report
+tar -xzf experiments/network/results/evidence.tar.gz -C .fleet/recorded-network-report
+PYTHONPATH=src python -m orchestrator.nettest.suite \
+  --report-from .fleet/recorded-network-report
+```
+
+Offline regeneration verifies input/case checksums and recomputes metrics from
+the saved request and attempt JSONL, using the recorded phase windows. It must
+agree with the original reports before replacing the combined report. With
+the same source/Python, repeated regeneration yields identical Markdown, JSON
+and archive bytes. Changed evidence is rejected. The bundle's per-case
+`report.txt` files show every acceptance check and its actual value/limit.
+
+**Fresh live runs are not bitwise deterministic:** OS scheduling, TCP chunking
+and buffering affect timings, including seeded jitter applied to chunks. Fixed
+inputs make the experiment repeatable, not its wall-clock samples identical.
+Each preset is one run, not a confidence interval or a natural failure-rate
+estimate. Keep the machine otherwise quiet and compare distributions/verdicts.
+
 The runtime uses unique run directories and owned process groups. Ctrl-C,
 startup failure and normal completion clean up owned processes. A proxy rule
 expires independently; process lifetime is bounded. An existing model server

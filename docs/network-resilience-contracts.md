@@ -14,6 +14,8 @@ PYTHONPATH=src python -m orchestrator.nettest.suite \
 ```
 
 Allow about 28 minutes plus build. Read `.fleet/resilience-report/report.md`.
+For a 32-second worker-delay smoke run, use
+`PYTHONPATH=src python -m orchestrator fleet net-test --config experiments/network/resilience-quick.json`.
 The three-worker, 6 RPS, 512-input/16-output workload, 30/30/60s phases,
 H100-derived timing profile and normal SLO are unchanged. No GPU or cloud is used.
 The original recipe, results and evidence remain in `experiments/network/report.json`

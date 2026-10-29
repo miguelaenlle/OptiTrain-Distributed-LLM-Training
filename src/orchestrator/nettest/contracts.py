@@ -91,7 +91,8 @@ def apply(report, cfg, rows, attempts, evidence):
     report["legacy_checks"] = original
     report["serving_slo_verdict"] = (
         "PASS"
-        if all(
+        if (report["all_requests"]["compliance_pct"] or 0) >= 99
+        and all(
             phase["compliance_pct"] is not None and phase["compliance_pct"] >= 99
             for phase in report["phases"].values()
         )

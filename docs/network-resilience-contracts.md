@@ -24,7 +24,7 @@ Every v2 report contains:
 | Result | Meaning |
 |---|---|
 | Resilience | Scenario-specific failure handling plus healthy/recovery and correctness checks. This determines the command exit status. |
-| Normal serving SLO | At least 99% of all offered requests in **each phase** complete with TTFT ≤250ms, **every** output gap ≤100ms and total ≤2s. Failures and cancellations remain in the denominator. |
+| Normal serving SLO | At least 99% of all offered requests **overall and in each phase** complete with TTFT ≤250ms, **every** output gap ≤100ms and total ≤2s. Failures, cancellations and transition requests remain in the overall denominator. |
 | Legacy contract | The original acceptance checks evaluated on these new measurements. Includes the original ≥65% fault-SLO allowance and stricter relative gap checks. |
 
 Exit 0 means every resilience test passed; 1 means valid resilience failures;

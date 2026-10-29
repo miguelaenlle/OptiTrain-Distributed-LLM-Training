@@ -1,0 +1,22 @@
+# User starts the model server(s). This runner only owns its test processes.
+backend: external
+workers: 1
+model: meta-llama/Meta-Llama-3.1-8B
+endpoints:
+  - 127.0.0.1:9000
+scenario: worker-delay
+fault:
+  target: worker-0
+  direction: response
+  action: delay
+  delay_ms: 300
+# Replace these illustrative budgets and offered load with your workload's contract.
+rps: 0.5
+timeouts:
+  request_s: 10
+slo:
+  ttft_ms: 1000
+  gap_ms: 100
+  total_ms: 10000
+criteria:
+  recovery_min_requests: 2

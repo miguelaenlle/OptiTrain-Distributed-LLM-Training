@@ -119,3 +119,26 @@ Ephemeral workers managed by a stable routing plane.
   the live set; reroutes automatically on 5xx or transport errors.
 - **S3 Registry:** Workers publish 15s TTL heartbeats to S3. Stale nodes are
   silently dropped from rotation without complex consensus protocols.
+
+### Network Resilience Testing
+
+Test the actual Go serving path through a **C++20 fault-injection proxy**:
+
+- **Controlled faults:** directional delay/jitter, bandwidth caps, stalls,
+  truncated responses and unavailable worker endpoints.
+- **CPU-first:** timed replay without a GPU, or a small real model;
+  existing GPU inference endpoints are also supported.
+- **Explicit verdicts:** TTFT, inter-output gaps, SLO goodput and recovery,
+  with healthy/fault/recovery comparisons and saved request-level evidence.
+
+```sh
+# From a checkout; requires Python, Go, CMake and a C++20 compiler.
+PYTHONPATH=src python -m orchestrator fleet net-test
+# Existing EC2/Linux hosts use the same command with one experiment config.
+PYTHONPATH=src python -m orchestrator fleet net-test --config experiments/network/ec2.yaml
+```
+
+The default uses **prepared H100 timing estimates**, not live GPU inference.
+Synthetic fixtures are included for CI. Failed SLOs remain failures; temporary
+degradation allowances are reported separately.
+[Setup, real-model modes, fault scenarios and acceptance criteria](./docs/network-testing.md).

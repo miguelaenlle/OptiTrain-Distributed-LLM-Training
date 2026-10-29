@@ -471,6 +471,7 @@ func TestSettingsFromEnv(t *testing.T) {
 		"HOST", "PORT", "FLEET_WORKERS_URI", "ROUTER_POLL_SECONDS", "WORKER_TTL_SECONDS",
 		"REQUEST_TIMEOUT_SECONDS", "ROUTER_CONNECT_TIMEOUT_SECONDS", "ROUTER_MAX_ATTEMPTS",
 		"ROUTER_STATS_POLL_SECONDS", "ROUTER_UPSTREAM_KEEPALIVE", "ROUTER_SHUTDOWN_TIMEOUT_SECONDS",
+		"ROUTER_FIRST_OUTPUT_TIMEOUT_SECONDS", "ROUTER_STREAM_IDLE_TIMEOUT_SECONDS",
 	} {
 		t.Setenv(key, "")
 	}
@@ -507,6 +508,7 @@ func TestSettingsFromEnv(t *testing.T) {
 		Host: "127.0.0.1", Port: 9000, WorkersURI: "s3://bucket/fleet/f1/workers",
 		PollInterval: 500 * time.Millisecond, TTLSeconds: 30,
 		RequestTimeout: 120 * time.Second, ConnectTimeout: time.Second,
+		FirstOutputTimeout: 10 * time.Second, StreamIdleTimeout: 10 * time.Second,
 		MaxAttempts: 5, StatsPollInterval: 4 * time.Second,
 		UpstreamKeepAlive: true, ShutdownTimeout: 10 * time.Second,
 	}

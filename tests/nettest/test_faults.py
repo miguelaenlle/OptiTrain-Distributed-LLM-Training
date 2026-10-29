@@ -209,6 +209,20 @@ def test_idle_expiry_closes_quiet_connection(proxy):
         assert 0.06 <= time.monotonic() - began < 0.7
 
 
+def test_idle_expiry_does_not_delay_active_traffic(proxy):
+    data_port, rule, _ = proxy
+    rule("idle", idle_ms=500)
+    with socket.create_connection(("127.0.0.1", data_port), timeout=2) as sock:
+        # Data must wake an idle timer immediately, not wait for its deadline.
+        sock.settimeout(0.2)
+        for _ in range(12):
+            sock.sendall(b"active")
+            assert receive(sock, 6) == b"active"
+            time.sleep(0.05)
+        sock.shutdown(socket.SHUT_WR)
+        assert sock.recv(1) == b""
+
+
 def test_disable_refuses_new_connections_but_preserves_existing(proxy):
     data_port, rule, _ = proxy
     with connect(data_port) as existing:

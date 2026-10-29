@@ -217,8 +217,11 @@ void Flow::read() {
       self->fail("read_error");
       return;
     }
-    self->pump();
-    self->read();
+    // New activity must re-evaluate an idle alarm immediately. Otherwise its
+    // waiting_ guard holds valid bytes until the idle deadline, and can expire
+    // with unread output queued. wake() also preserves existing pacing due
+    // times.
+    self->wake();
   });
 }
 void Flow::wait(Clock::time_point until) {
@@ -254,7 +257,7 @@ void Flow::pump() {
       fail("idle_expiry");
       return;
     }
-    if (queue_.empty()) {
+    if (queue_.empty() && !eof_) {
       wait(std::min(expiry, rule->expires));
       return;
     }

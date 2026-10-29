@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import tarfile
 
 import pytest
 
@@ -54,6 +55,18 @@ def test_suite_keeps_failures_continues_and_rebuilds_identically(tmp_path):
     assert regenerate(root) == 1
     bundle(root)
     assert before == {name: (root / name).read_bytes() for name in before}
+    # The portable bundle must work at a new path, without any executables.
+    restored = tmp_path / "restored"
+    with tarfile.open(root / "evidence.tar.gz") as archive:
+        for member in archive:
+            destination = (restored / member.name).resolve()
+            assert member.isfile() and destination.is_relative_to(restored.resolve())
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(archive.extractfile(member).read())
+    assert not (restored / "inputs/bin").exists()
+    assert regenerate(restored) == 1
+    bundle(restored)
+    assert before == {name: (restored / name).read_bytes() for name in before}
     text = before["report.md"].decode()
     assert "**synthetic**" in text and "NOT RUN" not in text
     # Failed integrity verification must not replace the last valid report.

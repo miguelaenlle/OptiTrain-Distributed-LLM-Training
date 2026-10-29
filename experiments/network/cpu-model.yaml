@@ -1,0 +1,7 @@
+# Download exactly one GGUF file; no model is downloaded by net-test.
+backend: cpu-model
+model_file: /absolute/path/qwen2.5-0.5b-instruct-q4_k_m.gguf
+llama_server: llama-server
+# CPU defaults: one worker, 0.5 RPS, 16 output tokens, 512 context, two threads.
+# This is a functional integration test, not a statistically strong tail benchmark.
+scenario: worker-delay

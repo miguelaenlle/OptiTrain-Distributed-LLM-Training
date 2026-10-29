@@ -1,0 +1,75 @@
+{
+  "all_workers_received_recovery_traffic": {
+    "baseline": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "client-delay": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "client-disconnect": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "client-jitter": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "combined-path-delay": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "fleet-stall": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "idle-expiry": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "slow-client-download": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "slow-client-upload": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "worker-delay": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "worker-flapping": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "worker-stall": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "worker-truncate": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ],
+    "worker-unreachable": [
+      "worker-0",
+      "worker-1",
+      "worker-2"
+    ]
+  },
+  "client_disconnect_breaker_open_events": 0
+}

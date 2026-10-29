@@ -1,0 +1,43 @@
+cmake_minimum_required(VERSION 3.24)
+project(optitrain_netfault VERSION 0.1.0 LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+include(FetchContent)
+find_package(Threads REQUIRED)
+# Header-only dependencies, pinned by content hash. No model/runtime dependency.
+FetchContent_Declare(asio
+  URL https://codeload.github.com/chriskohlhoff/asio/tar.gz/refs/tags/asio-1-30-2
+  URL_HASH SHA256=755bd7f85a4b269c67ae0ea254907c078d408cce8e1a352ad2ed664d233780e8
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE TIMEOUT 120 INACTIVITY_TIMEOUT 30)
+FetchContent_Declare(json
+  URL https://codeload.github.com/nlohmann/json/tar.gz/refs/tags/v3.11.3
+  URL_HASH SHA256=0d8ef5af7f9794e3263480193c491549b2ba6cc74bb018906202ada498a79406
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE TIMEOUT 120 INACTIVITY_TIMEOUT 30)
+FetchContent_MakeAvailable(asio json)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/licenses)
+configure_file(${asio_SOURCE_DIR}/asio/LICENSE_1_0.txt ${CMAKE_CURRENT_BINARY_DIR}/licenses/ASIO-LICENSE COPYONLY)
+configure_file(${json_SOURCE_DIR}/LICENSE.MIT ${CMAKE_CURRENT_BINARY_DIR}/licenses/JSON-LICENSE COPYONLY)
+add_library(netfault_core src/common.cpp src/proxy.cpp src/replay.cpp)
+target_include_directories(netfault_core PUBLIC include)
+target_include_directories(netfault_core SYSTEM PUBLIC ${asio_SOURCE_DIR}/asio/include)
+target_compile_definitions(netfault_core PUBLIC ASIO_STANDALONE ASIO_NO_DEPRECATED)
+target_link_libraries(netfault_core PUBLIC Threads::Threads nlohmann_json::nlohmann_json)
+target_compile_options(netfault_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion -Wshadow)
+option(NETFAULT_SANITIZERS "Enable address/undefined behavior sanitizers" OFF)
+if(NETFAULT_SANITIZERS)
+  target_compile_options(netfault_core PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
+  target_link_options(netfault_core PUBLIC -fsanitize=address,undefined)
+endif()
+add_executable(optitrain-netfault src/main.cpp)
+target_link_libraries(optitrain-netfault PRIVATE netfault_core)
+if(UNIX AND NOT APPLE)
+  target_link_options(optitrain-netfault PRIVATE -static-libstdc++ -static-libgcc)
+endif()
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(netfault-unit tests/unit.cpp)
+  target_link_libraries(netfault-unit PRIVATE netfault_core)
+  add_test(NAME netfault-unit COMMAND netfault-unit)
+endif()
+install(TARGETS optitrain-netfault RUNTIME DESTINATION bin)

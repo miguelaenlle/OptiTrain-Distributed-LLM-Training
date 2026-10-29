@@ -36,6 +36,9 @@ def _load_dotenv(path: str = ".env") -> None:
 
 def main() -> None:
     _load_dotenv()
+    if sys.argv[1:3] == ["fleet", "net-test"]:
+        from .nettest.runner import main as nettest_main
+        sys.exit(nettest_main(sys.argv[3:]))
 
     # --dry-run is attached to each subcommand (e.g. `setup --dry-run`) via a
     # shared parent parser, so it reads naturally after the command.
@@ -207,6 +210,9 @@ def main() -> None:
         "fleet", parents=[common], help="inference fleet (ROADMAP Part 1)"
     )
     fleet_sub = fleet_parser.add_subparsers(dest="fleet_command", required=True)
+    fleet_sub.add_parser(
+        "net-test", help="C++ network faults, streaming replay and SLO report (use net-test --help)"
+    )
     fleet_common = argparse.ArgumentParser(add_help=False)
     fleet_common.add_argument(
         "--local", action="store_true", help="run the fleet as local processes (no AWS)"

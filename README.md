@@ -119,3 +119,35 @@ Ephemeral workers managed by a stable routing plane.
   the live set; reroutes automatically on 5xx or transport errors.
 - **S3 Registry:** Workers publish 15s TTL heartbeats to S3. Stale nodes are
   silently dropped from rotation without complex consensus protocols.
+
+### Network Resilience Testing
+
+Test the actual Go serving path through a **C++20 fault-injection proxy**:
+
+- **Controlled faults:** directional delay/jitter, bandwidth caps, stalls,
+  truncated responses and unavailable worker endpoints.
+- **CPU-first:** timed replay without a GPU, or a small real model;
+  existing GPU inference endpoints are also supported.
+- **Explicit verdicts:** TTFT, inter-output gaps, SLO goodput and recovery,
+  with healthy/fault/recovery comparisons and saved request-level evidence.
+
+```sh
+# From a checkout; requires Python, Go, CMake and a C++20 compiler.
+PYTHONPATH=src python -m orchestrator fleet net-test
+# All 14 presets, fixed inputs, combined report (~28 minutes plus build).
+PYTHONPATH=src python -m orchestrator.nettest.suite
+# Scenario-specific resilience contracts and opt-in streaming failover settings.
+PYTHONPATH=src python -m orchestrator.nettest.suite --config experiments/network/resilience.json --output .fleet/resilience-report
+# Existing EC2/Linux hosts use the same command with one experiment config.
+PYTHONPATH=src python -m orchestrator fleet net-test --config experiments/network/ec2.yaml
+```
+
+The default uses **prepared H100 timing estimates**, not live GPU inference.
+Synthetic fixtures are included for CI. Failed SLOs remain failures; temporary
+degradation allowances are reported separately.
+The resilience recipe reports **fault handling**, **normal serving SLOs**, and
+the **original acceptance contract** separately; an expected outage never
+becomes successful inference. See [contracts and routing](./docs/network-resilience-contracts.md).
+[Setup, real-model modes, fault scenarios and acceptance criteria](./docs/network-testing.md).
+[Original preset findings](./experiments/network/results/README.md) ·
+[Resilience results, before/after comparison and offline reproduction](./experiments/network/resilience-results/README.md).

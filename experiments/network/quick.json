@@ -1,0 +1,14 @@
+{
+  "phases": {
+    "healthy_s": 10,
+    "fault_s": 12,
+    "recovery_s": 10
+  },
+  "timeouts": {
+    "request_s": 1.5
+  },
+  "criteria": {
+    "recovery_min_requests": 20
+  },
+  "profile": "netfault/profiles/synthetic.json"
+}

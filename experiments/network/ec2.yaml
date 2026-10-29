@@ -1,0 +1,25 @@
+# Existing hosts only. No provisioning or AWS API calls.
+# Prepare a package first: scripts/package-nettest.sh linux/amd64
+execution: remote
+backend: replay
+profile: netfault/profiles/h100-llama31-8b.json
+scenario: worker-delay
+artifacts:
+  package: dist/nettest-linux-amd64.tar.gz
+  platform: linux-amd64
+hosts:
+  client:
+    ssh_host: optitrain-client
+    data_address: 10.0.1.10
+  router:
+    ssh_host: optitrain-router
+    data_address: 10.0.1.20
+  workers:
+    ssh_host: optitrain-workers
+    data_address: 10.0.1.30
+
+# router: router HTTP, client-link data listener, loopback management
+# workers: alternating backend/proxy ports, then loopback management
+ports:
+  router: [8080, 18080, 18700]
+  workers: [19000, 19001, 19002, 19003, 19004, 19005, 18701]

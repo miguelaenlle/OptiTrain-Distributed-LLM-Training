@@ -1,0 +1,113 @@
+"""A real multi-scenario run and tamper-evident, deterministic offline replay."""
+
+from __future__ import annotations
+
+import json
+import tarfile
+
+import pytest
+
+from orchestrator.nettest.config import ROOT, load
+from orchestrator.nettest.suite import bundle, execute, regenerate
+
+pytestmark = pytest.mark.skipif(
+    not all(
+        (ROOT / ".fleet/nettest-bin" / name).is_file()
+        for name in ("router", "loadgen", "optitrain-netfault")
+    ),
+    reason="build all net-test executables first",
+)
+
+
+def test_suite_keeps_failures_continues_and_rebuilds_identically(tmp_path):
+    profile = tmp_path / "profile.json"
+    profile.write_text(
+        json.dumps(
+            {
+                "kind": "synthetic",
+                "samples": [
+                    {
+                        "input_tokens": 512,
+                        "output_tokens": 16,
+                        "first_output_ms": 5,
+                        "gaps_ms": [1] * 15,
+                    }
+                ],
+            }
+        )
+    )
+    cfg = load(scenario="baseline")
+    cfg.update(profile=str(profile), rps=30, phases={"healthy_s": 3, "fault_s": 3, "recovery_s": 3})
+    cfg["timeouts"].update(request_s=1, first_output_s=0.8, idle_s=0.8)
+    cfg["criteria"].update(
+        recovery_window_s=1, recovery_min_requests=20, recovery_latency_ratio=10, fault_gap_ratio=10
+    )
+    root = tmp_path / "suite"
+    assert execute(cfg, root, ["client-disconnect", "baseline"], skip_build=True) == 1
+    summary = json.loads((root / "summary.json").read_text())
+    assert [case["report"]["verdict"] for case in summary["cases"]] == ["FAIL", "PASS"]
+    assert summary["cases"][0]["report"]["all_requests"]["completed"] < 270
+    assert summary["cases"][1]["report"]["all_requests"]["completed"] == 270
+    before = {
+        name: (root / name).read_bytes()
+        for name in ("report.md", "summary.json", "evidence.tar.gz")
+    }
+    assert regenerate(root) == 1
+    bundle(root)
+    assert before == {name: (root / name).read_bytes() for name in before}
+    # The portable bundle must work at a new path, without any executables.
+    restored = tmp_path / "restored"
+    with tarfile.open(root / "evidence.tar.gz") as archive:
+        for member in archive:
+            destination = (restored / member.name).resolve()
+            assert member.isfile() and destination.is_relative_to(restored.resolve())
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(archive.extractfile(member).read())
+    assert not (restored / "inputs/bin").exists()
+    moved = tmp_path / "moved-original"
+    root.rename(moved)
+    root = moved  # Recorded absolute paths now point to a directory that does not exist.
+    assert regenerate(restored) == 1
+    bundle(restored)
+    assert before == {name: (restored / name).read_bytes() for name in before}
+    text = before["report.md"].decode()
+    assert "**synthetic**" in text and "NOT RUN" not in text
+    # Failed integrity verification must not replace the last valid report.
+    requests = root / "01-client-disconnect/requests.jsonl"
+    requests.write_bytes(requests.read_bytes() + b"\n")
+    with pytest.raises(ValueError, match="changed evidence"):
+        regenerate(root)
+    assert (root / "report.md").read_bytes() == before["report.md"]
+
+
+def test_resilience_suite_cancellation_idle_expiry_and_offline_evidence(tmp_path):
+    cfg = load(ROOT / "experiments/network/resilience.json", scenario="baseline")
+    # Enough samples for the unchanged 95% recovery-goodput comparison;
+    # a four-second recovery is dominated by one request at the phase boundary.
+    cfg.update(phases={"healthy_s": 6, "fault_s": 4, "recovery_s": 10})
+    cfg["criteria"].update(recovery_window_s=1, recovery_min_requests=4)
+    root = tmp_path / "resilience"
+    assert (
+        execute(cfg, root, ["client-disconnect", "idle-expiry", "baseline"], skip_build=True) == 0
+    )
+    summary = json.loads((root / "summary.json").read_text())
+    reports = [c["report"] for c in summary["cases"]]
+    assert [r["verdict"] for r in reports] == ["PASS"] * 3
+    assert reports[0]["serving_slo_verdict"] == "FAIL"
+    assert reports[0]["phases"]["fault"]["completion_pct"] == 0
+    idle_events = [
+        json.loads(line)
+        for line in (root / "02-idle-expiry/worker-proxy-events.jsonl").read_text().splitlines()
+    ]
+    assert any(e.get("reason") == "idle_expiry" for e in idle_events)
+    before = (root / "report.md").read_bytes(), (root / "summary.json").read_bytes()
+    assert regenerate(root) == 0
+    assert before == ((root / "report.md").read_bytes(), (root / "summary.json").read_bytes())
+    # Even a self-consistent report must not substitute a measured threshold
+    # for the budget derived before traffic from the frozen inputs.
+    contract = root / "01-client-disconnect/contract.json"
+    data = json.loads(contract.read_text())
+    data["cancellation_ms"] = 999999
+    contract.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="changed evidence"):
+        regenerate(root)

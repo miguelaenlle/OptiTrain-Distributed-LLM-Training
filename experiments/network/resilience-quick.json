@@ -1,0 +1,17 @@
+{
+  "contract_version": 2,
+  "routing": {
+    "failure_threshold": 2,
+    "cooldown_s": 1.0,
+    "least_inflight_retries": true,
+    "probe_when_all_open": true
+  },
+  "timeouts": {
+    "first_output_s": 0.2
+  },
+  "phases": {
+    "healthy_s": 10,
+    "fault_s": 12,
+    "recovery_s": 10
+  }
+}

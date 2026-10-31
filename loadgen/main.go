@@ -34,18 +34,27 @@ import (
 )
 
 type config struct {
-	url         string
-	rps         float64
-	concurrency int
-	duration    time.Duration
-	ramp        time.Duration
-	promptsFile string
-	maxTokens   int
-	temperature float64
-	timeout     time.Duration
-	out         string
-	killAfter   time.Duration
-	killCmd     string
+	url               string
+	rps               float64
+	concurrency       int
+	duration          time.Duration
+	ramp              time.Duration
+	promptsFile       string
+	maxTokens         int
+	temperature       float64
+	timeout           time.Duration
+	out               string
+	killAfter         time.Duration
+	killCmd           string
+	stream            bool
+	requestsOut       string
+	metaOut           string
+	requestPrefix     string
+	inputTokens       int
+	model             string
+	cancelWindowStart float64
+	cancelWindowEnd   float64
+	cancelAfterEvents int
 }
 
 type result struct {
@@ -94,6 +103,9 @@ var defaultPrompts = []string{"ROMEO:", "JULIET:", "First Citizen:", "KING HENRY
 
 func main() {
 	cfg := parseFlags()
+	if cfg.stream {
+		os.Exit(runStreaming(cfg))
+	}
 	prompts := loadPrompts(cfg.promptsFile)
 
 	client := &http.Client{Timeout: cfg.timeout}
@@ -165,8 +177,17 @@ func parseFlags() config {
 	flag.StringVar(&cfg.out, "out", "loadgen-report.json", "report path (empty to skip)")
 	flag.DurationVar(&cfg.killAfter, "kill-after", 0, "run -kill-cmd after this delay (0 = off)")
 	flag.StringVar(&cfg.killCmd, "kill-cmd", "", "shell command that kills a worker mid-test")
+	flag.BoolVar(&cfg.stream, "stream", false, "consume SSE output and write per-request evidence")
+	flag.StringVar(&cfg.requestsOut, "requests-out", "requests.jsonl", "new JSONL evidence path (stream mode)")
+	flag.StringVar(&cfg.requestPrefix, "request-prefix", "nettest", "logical request ID prefix")
+	flag.IntVar(&cfg.inputTokens, "replay-input-tokens", 0, "explicit synthetic input shape, replay only")
+	flag.StringVar(&cfg.model, "model", "", "model ID for real inference")
+	flag.IntVar(&cfg.cancelAfterEvents, "cancel-after-events", 0, "close response after N nonempty output events")
+	flag.StringVar(&cfg.metaOut, "meta-out", "", "stream start metadata path")
+	flag.Float64Var(&cfg.cancelWindowStart, "cancel-window-start", 0, "only cancel requests dispatched after this test offset")
+	flag.Float64Var(&cfg.cancelWindowEnd, "cancel-window-end", 0, "stop canceling requests at this offset (0 means no end)")
 	flag.Parse()
-	if cfg.rps <= 0 || cfg.concurrency <= 0 {
+	if cfg.rps <= 0 || math.IsNaN(cfg.rps) || math.IsInf(cfg.rps, 0) || cfg.rps > 100000 || cfg.concurrency <= 0 || cfg.concurrency > 4096 || cfg.duration <= 0 || cfg.timeout <= 0 || cfg.maxTokens < 1 {
 		fmt.Fprintln(os.Stderr, "loadgen: -rps and -concurrency must be positive")
 		os.Exit(2)
 	}
@@ -243,7 +264,8 @@ func doRequest(client *http.Client, cfg config, prompt string) result {
 			CompletionTokens int `json:"completion_tokens"`
 		} `json:"usage"`
 	}
-	data, _ := io.ReadAll(resp.Body)
+	data, readErr := io.ReadAll(resp.Body)
+	lat = float64(time.Since(t0).Microseconds()) / 1000.0
 	if json.Unmarshal(data, &payload) == nil {
 		tokens = payload.Usage.CompletionTokens
 	}
@@ -251,7 +273,7 @@ func doRequest(client *http.Client, cfg config, prompt string) result {
 		at:        t0,
 		latencyMs: lat,
 		status:    resp.StatusCode,
-		failed:    resp.StatusCode >= 400,
+		failed:    resp.StatusCode >= 400 || readErr != nil,
 		tokens:    tokens,
 	}
 }

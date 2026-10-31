@@ -1,0 +1,55 @@
+{
+  "same_binaries_profile_workload_slo_criteria": true,
+  "seed": 101,
+  "cases": [
+    {
+      "scenario": "baseline",
+      "reference_resilience": "PASS",
+      "improved_resilience": "PASS",
+      "reference_fault_ttft_p95_ms": 16.67,
+      "improved_fault_ttft_p95_ms": 16.929,
+      "improved_fault_compliance_pct": 100.0,
+      "improved_failed_checks": []
+    },
+    {
+      "scenario": "worker-stall",
+      "reference_resilience": "FAIL",
+      "improved_resilience": "FAIL",
+      "reference_fault_ttft_p95_ms": 1017.04,
+      "improved_fault_ttft_p95_ms": 215.707,
+      "improved_fault_compliance_pct": 97.1830985915493,
+      "improved_failed_checks": [
+        {
+          "actual": 19.925,
+          "limit": 19.1807,
+          "name": "recovery: ttft_p95_ms",
+          "operator": "le",
+          "verdict": "FAIL"
+        },
+        {
+          "actual": 10.444,
+          "limit": 8.960600000000001,
+          "name": "recovery: gap_p99_ms",
+          "operator": "le",
+          "verdict": "FAIL"
+        },
+        {
+          "actual": 7.75,
+          "limit": 5.0,
+          "name": "recovery: qualifying window starts within seconds",
+          "operator": "le",
+          "verdict": "FAIL"
+        }
+      ]
+    },
+    {
+      "scenario": "worker-flapping",
+      "reference_resilience": "FAIL",
+      "improved_resilience": "PASS",
+      "reference_fault_ttft_p95_ms": 1014.809,
+      "improved_fault_ttft_p95_ms": 215.132,
+      "improved_fault_compliance_pct": 100.0,
+      "improved_failed_checks": []
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "source": "dfee96b",
+  "files_sha256": {
+    "report.md": "f3d50ca96142c2fa70b3c9da40a82f4c042567b5ad80ed99da7c02c4f762b850",
+    "summary.json": "733afe47cfdc20cbdc53267975a4ec2743a0d4eae931eeb703f031dbec9a4708",
+    "evidence.tar.gz": "dec221871ef766e535fc8360322e5c5a40cda0b0035ddf78d65b85bf324ad443"
+  },
+  "native_offline": "macOS / Python 3.14, no original run path",
+  "linux_offline": "Python 3.12, network disabled, no installed serving binaries/compiler, no original run path",
+  "byte_identical": true
+}

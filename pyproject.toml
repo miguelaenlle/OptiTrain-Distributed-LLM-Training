@@ -19,6 +19,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+nettest = ["PyYAML>=6"]
 dev = [
     "pytest",
     "ruff",

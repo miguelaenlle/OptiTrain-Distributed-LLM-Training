@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "kind": "synthetic",
+  "description": "Functional fixture only: 100 ms first output, 15 gaps of 20 ms. Not GPU measurements.",
+  "model": "synthetic",
+  "samples": [
+    {
+      "input_tokens": 512,
+      "output_tokens": 16,
+      "first_output_ms": 100,
+      "gaps_ms": [
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20,
+        20
+      ]
+    }
+  ]
+}

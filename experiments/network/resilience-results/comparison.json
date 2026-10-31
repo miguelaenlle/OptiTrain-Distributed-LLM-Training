@@ -1,0 +1,174 @@
+{
+  "after_routing": {
+    "cooldown_s": 1.0,
+    "failure_threshold": 2,
+    "least_inflight_retries": true,
+    "probe_when_all_open": true
+  },
+  "after_source": "dfee96b5660de567c000723159190b4eeb59c9da",
+  "after_timeouts": {
+    "connect_s": 0.5,
+    "first_output_s": 0.2,
+    "idle_s": 1.0,
+    "request_s": 2.0
+  },
+  "before_source": "28ff966fc55289ae1128d46081016ebd604bd413",
+  "cases": [
+    {
+      "after_fault_ttft_p95_ms": 17.079,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 17.514,
+      "before_original": "PASS",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "baseline"
+    },
+    {
+      "after_fault_ttft_p95_ms": 118.532,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 118.808,
+      "before_original": "PASS",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "client-delay"
+    },
+    {
+      "after_fault_ttft_p95_ms": 17.381,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 18.191,
+      "before_original": "FAIL",
+      "fault_completion_pct": 0.0,
+      "fault_normal_slo_pct": 0.0,
+      "scenario": "client-disconnect"
+    },
+    {
+      "after_fault_ttft_p95_ms": 158.38,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 162.421,
+      "before_original": "FAIL",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 87.22222222222223,
+      "scenario": "client-jitter"
+    },
+    {
+      "after_fault_ttft_p95_ms": 220.155,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 218.482,
+      "before_original": "PASS",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "combined-path-delay"
+    },
+    {
+      "after_fault_ttft_p95_ms": 15.973,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 1843.386,
+      "before_original": "FAIL",
+      "fault_completion_pct": 0.5555555555555556,
+      "fault_normal_slo_pct": 0.5555555555555556,
+      "scenario": "fleet-stall"
+    },
+    {
+      "after_fault_ttft_p95_ms": 17.101,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 17.812,
+      "before_original": "PASS",
+      "fault_completion_pct": 88.33333333333333,
+      "fault_normal_slo_pct": 88.33333333333333,
+      "scenario": "idle-expiry"
+    },
+    {
+      "after_fault_ttft_p95_ms": 67.309,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 67.831,
+      "before_original": "FAIL",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 22.3463687150838,
+      "scenario": "slow-client-download"
+    },
+    {
+      "after_fault_ttft_p95_ms": 1999.244,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 1956.985,
+      "before_original": "FAIL",
+      "fault_completion_pct": 5.027932960893855,
+      "fault_normal_slo_pct": 0.5586592178770949,
+      "scenario": "slow-client-upload"
+    },
+    {
+      "after_fault_ttft_p95_ms": 214.88,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 320.56,
+      "before_original": "PASS",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "worker-delay"
+    },
+    {
+      "after_fault_ttft_p95_ms": 214.92,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 1015.427,
+      "before_original": "FAIL",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "worker-flapping"
+    },
+    {
+      "after_fault_ttft_p95_ms": 214.627,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 1016.794,
+      "before_original": "FAIL",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "worker-stall"
+    },
+    {
+      "after_fault_ttft_p95_ms": 17.031,
+      "after_normal_slo": "FAIL",
+      "after_original": "FAIL",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 17.547,
+      "before_original": "FAIL",
+      "fault_completion_pct": 88.33333333333333,
+      "fault_normal_slo_pct": 88.33333333333333,
+      "scenario": "worker-truncate"
+    },
+    {
+      "after_fault_ttft_p95_ms": 17.476,
+      "after_normal_slo": "PASS",
+      "after_original": "PASS",
+      "after_resilience": "PASS",
+      "before_fault_ttft_p95_ms": 17.565,
+      "before_original": "PASS",
+      "fault_completion_pct": 100.0,
+      "fault_normal_slo_pct": 100.0,
+      "scenario": "worker-unreachable"
+    }
+  ],
+  "changed_stimulus": "idle-expiry now adds a 150ms quiet interval; old preset never expired",
+  "same_workload_profile_slo_criteria": true
+}

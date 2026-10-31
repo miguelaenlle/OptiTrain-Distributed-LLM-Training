@@ -1,0 +1,35 @@
+{
+  "bundle_contains_executables": false,
+  "exit_code_reason": "Original valid runs include SLO failures; regeneration retains those FAIL verdicts.",
+  "linux_network": "none",
+  "linux_python": "3.12.3",
+  "measurement_source": "28ff966fc55289ae1128d46081016ebd604bd413",
+  "native_platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+  "native_python": "3.14.7",
+  "offered_requests": 10080,
+  "offline_exit_code": 1,
+  "original_sha256": {
+    "evidence.tar.gz": "1a3f7dd6051b8abc569dd07719fd9df3f5d5dcf8b504878624261a27f906e9d1",
+    "report.md": "f622bf357cb209134703ad1e2c0d50f4fdf97e1bb9d9b5aa107ec010245f953e",
+    "summary.json": "7e76df43de4099edc593daad25ded101d4883b56fb81d86ab521bf1c31c09152"
+  },
+  "regenerated_sha256": {
+    "linux_source_only": {
+      "evidence.tar.gz": "1a3f7dd6051b8abc569dd07719fd9df3f5d5dcf8b504878624261a27f906e9d1",
+      "report.md": "f622bf357cb209134703ad1e2c0d50f4fdf97e1bb9d9b5aa107ec010245f953e",
+      "summary.json": "7e76df43de4099edc593daad25ded101d4883b56fb81d86ab521bf1c31c09152"
+    },
+    "macos": {
+      "evidence.tar.gz": "1a3f7dd6051b8abc569dd07719fd9df3f5d5dcf8b504878624261a27f906e9d1",
+      "report.md": "f622bf357cb209134703ad1e2c0d50f4fdf97e1bb9d9b5aa107ec010245f953e",
+      "summary.json": "7e76df43de4099edc593daad25ded101d4883b56fb81d86ab521bf1c31c09152"
+    }
+  },
+  "scenarios": 14,
+  "verdicts": {
+    "FAIL": 8,
+    "INVALID": 0,
+    "PASS": 6
+  },
+  "version": 1
+}

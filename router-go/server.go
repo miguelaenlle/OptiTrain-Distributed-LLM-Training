@@ -23,15 +23,21 @@ import (
 
 // Settings is RouterSettings: same env vars, same defaults.
 type Settings struct {
-	Host              string        // HOST
-	Port              int           // PORT
-	WorkersURI        string        // FLEET_WORKERS_URI
-	PollInterval      time.Duration // ROUTER_POLL_SECONDS
-	TTLSeconds        float64       // WORKER_TTL_SECONDS
-	RequestTimeout    time.Duration // REQUEST_TIMEOUT_SECONDS (per upstream attempt)
-	ConnectTimeout    time.Duration // ROUTER_CONNECT_TIMEOUT_SECONDS
-	MaxAttempts       int           // ROUTER_MAX_ATTEMPTS
-	StatsPollInterval time.Duration // ROUTER_STATS_POLL_SECONDS
+	Host                       string        // HOST
+	Port                       int           // PORT
+	WorkersURI                 string        // FLEET_WORKERS_URI
+	PollInterval               time.Duration // ROUTER_POLL_SECONDS
+	TTLSeconds                 float64       // WORKER_TTL_SECONDS
+	RequestTimeout             time.Duration // REQUEST_TIMEOUT_SECONDS (per upstream attempt)
+	FirstOutputTimeout         time.Duration // first nonempty SSE output
+	StreamIdleTimeout          time.Duration // maximum output gap
+	StreamFailureThreshold     int           // 0 disables streaming circuit breaker
+	StreamCooldown             time.Duration
+	StreamLeastInflightRetries bool          // primary choice remains round robin
+	StreamProbeWhenAllOpen     bool          // one global probe can bypass cooldown on total quarantine
+	ConnectTimeout             time.Duration // ROUTER_CONNECT_TIMEOUT_SECONDS
+	MaxAttempts                int           // ROUTER_MAX_ATTEMPTS
+	StatsPollInterval          time.Duration // ROUTER_STATS_POLL_SECONDS
 
 	// UpstreamKeepAlive (ROUTER_UPSTREAM_KEEPALIVE, default off) pools upstream
 	// connections. Off by default for parity with the Python router, which
@@ -51,17 +57,23 @@ const StatsPollTimeout = 1500 * time.Millisecond
 // SettingsFromEnv mirrors RouterSettings.from_env.
 func SettingsFromEnv(logger *log.Logger) Settings {
 	return Settings{
-		Host:              envString("HOST", "0.0.0.0"),
-		Port:              envInt(logger, "PORT", 8000),
-		WorkersURI:        envString("FLEET_WORKERS_URI", ""),
-		PollInterval:      envSeconds(logger, "ROUTER_POLL_SECONDS", 3),
-		TTLSeconds:        envFloat(logger, "WORKER_TTL_SECONDS", DefaultTTLSeconds),
-		RequestTimeout:    envSeconds(logger, "REQUEST_TIMEOUT_SECONDS", 60),
-		ConnectTimeout:    envSeconds(logger, "ROUTER_CONNECT_TIMEOUT_SECONDS", 3),
-		MaxAttempts:       envInt(logger, "ROUTER_MAX_ATTEMPTS", DefaultMaxAttempts),
-		StatsPollInterval: envSeconds(logger, "ROUTER_STATS_POLL_SECONDS", 2),
-		UpstreamKeepAlive: envBool(logger, "ROUTER_UPSTREAM_KEEPALIVE", false),
-		ShutdownTimeout:   envSeconds(logger, "ROUTER_SHUTDOWN_TIMEOUT_SECONDS", 10),
+		Host:                       envString("HOST", "0.0.0.0"),
+		Port:                       envInt(logger, "PORT", 8000),
+		WorkersURI:                 envString("FLEET_WORKERS_URI", ""),
+		PollInterval:               envSeconds(logger, "ROUTER_POLL_SECONDS", 3),
+		TTLSeconds:                 envFloat(logger, "WORKER_TTL_SECONDS", DefaultTTLSeconds),
+		RequestTimeout:             envSeconds(logger, "REQUEST_TIMEOUT_SECONDS", 60),
+		FirstOutputTimeout:         envSeconds(logger, "ROUTER_FIRST_OUTPUT_TIMEOUT_SECONDS", 10),
+		StreamIdleTimeout:          envSeconds(logger, "ROUTER_STREAM_IDLE_TIMEOUT_SECONDS", 10),
+		StreamFailureThreshold:     envInt(logger, "ROUTER_STREAM_FAILURE_THRESHOLD", 0),
+		StreamCooldown:             envSeconds(logger, "ROUTER_STREAM_COOLDOWN_SECONDS", 1),
+		StreamLeastInflightRetries: envBool(logger, "ROUTER_STREAM_LEAST_INFLIGHT_RETRIES", false),
+		StreamProbeWhenAllOpen:     envBool(logger, "ROUTER_STREAM_PROBE_WHEN_ALL_OPEN", false),
+		ConnectTimeout:             envSeconds(logger, "ROUTER_CONNECT_TIMEOUT_SECONDS", 3),
+		MaxAttempts:                envInt(logger, "ROUTER_MAX_ATTEMPTS", DefaultMaxAttempts),
+		StatsPollInterval:          envSeconds(logger, "ROUTER_STATS_POLL_SECONDS", 2),
+		UpstreamKeepAlive:          envBool(logger, "ROUTER_UPSTREAM_KEEPALIVE", false),
+		ShutdownTimeout:            envSeconds(logger, "ROUTER_SHUTDOWN_TIMEOUT_SECONDS", 10),
 	}
 }
 
@@ -71,13 +83,16 @@ type StatsGetter func(ctx context.Context, addr string) (map[string]any, error)
 
 // Server wires the registry, the policy, the counters and the metrics together.
 type Server struct {
-	settings Settings
-	state    *State
-	registry Registry
-	metrics  *Metrics
-	poster   Poster
-	stats    StatsGetter
-	logger   *log.Logger
+	settings     Settings
+	state        *State
+	registry     Registry
+	metrics      *Metrics
+	poster       Poster
+	stats        StatsGetter
+	logger       *log.Logger
+	streamClient *http.Client
+	auditMu      sync.Mutex
+	streamPool   streamPool
 }
 
 // NewServer builds a router. poster and stats may be nil, in which case real
@@ -106,13 +121,14 @@ func NewServer(
 		}
 	}
 	return &Server{
-		settings: settings,
-		state:    &State{},
-		registry: registry,
-		metrics:  metrics,
-		poster:   poster,
-		stats:    stats,
-		logger:   logger,
+		settings:     settings,
+		state:        &State{},
+		registry:     registry,
+		metrics:      metrics,
+		poster:       poster,
+		stats:        stats,
+		logger:       logger,
+		streamClient: newUpstreamClient(settings),
 	}
 }
 
@@ -191,6 +207,12 @@ func (s *Server) handleCompletions(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	started := time.Now()
+	if wantsStream(body) {
+		result := s.handleStream(w, r, body, workers, start)
+		s.state.Record(result)
+		s.metrics.RecordRequest(OutcomeFor(result.StatusCode, result.Rerouted), time.Since(started))
+		return
+	}
 	result := RouteCompletion(r.Context(), body, workers, s.instrumented(workers), RoutePolicy{
 		StartIndex:  start,
 		MaxAttempts: s.settings.MaxAttempts,

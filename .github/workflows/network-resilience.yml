@@ -1,0 +1,48 @@
+name: Network resilience
+on:
+  pull_request:
+    paths: ['netfault/**', 'router-go/**', 'loadgen/**', 'src/orchestrator/**', 'tests/nettest/**', 'scripts/*nettest*', 'experiments/network/**', '.github/workflows/network-resilience.yml']
+  push:
+    branches: [main]
+    paths: ['netfault/**', 'router-go/**', 'loadgen/**', 'src/orchestrator/**', 'tests/nettest/**', '.github/workflows/network-resilience.yml']
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.x'
+          cache: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pytest PyYAML ruff
+      - run: ruff check src/orchestrator/nettest tests/nettest
+      - run: ruff format --check src/orchestrator/nettest tests/nettest
+      - run: cmake -S netfault -B .fleet/netfault-build -DNETFAULT_SANITIZERS=ON -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build .fleet/netfault-build --parallel 2
+      - run: ctest --test-dir .fleet/netfault-build --output-on-failure
+      - run: |
+          mkdir -p .fleet/nettest-bin
+          cp .fleet/netfault-build/optitrain-netfault .fleet/nettest-bin/
+          go -C router-go build -o ../.fleet/nettest-bin/router .
+          go -C loadgen build -o ../.fleet/nettest-bin/loadgen .
+          go -C router-go test -race -timeout 60s ./...
+          go -C loadgen test -race -timeout 60s ./...
+      - run: python -m pytest tests/nettest -q --basetemp=.fleet/pytest
+        env:
+          PYTHONPATH: src
+          ASAN_OPTIONS: detect_leaks=1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: network-test-evidence
+          path: |
+            .fleet/net-tests/
+            .fleet/pytest/
+          if-no-files-found: ignore
+          include-hidden-files: true
